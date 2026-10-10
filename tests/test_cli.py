@@ -546,6 +546,65 @@ def test_labels_file_accepts_export_rows(capsys, fakes, tmp_path):
     assert json.loads(out)["label_sources"] == {"rules": 4}
 
 
+def _labels_file(tmp_path, rows):
+    path = tmp_path / "labels.jsonl"
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+    return path
+
+
+@pytest.mark.parametrize("command", ["scan", "export"])
+def test_labels_matching_no_trial_exit_2(capsys, fakes, tmp_path, command):
+    labels = _labels_file(tmp_path, [{"id": "nope", "label": "complete"}])
+    argv = [command, str(RUN), "--labels", str(labels)]
+    if command == "export":
+        argv += ["--out", str(tmp_path / "t.jsonl")]
+    code, _, err = run(capsys, *argv)
+    assert code == 2
+    assert "none of the 1 label id(s) in --labels match a trial" in err
+    assert "'nope'" in err and "t-easy__control__r0" in err
+
+
+def test_labels_partial_match_notes(capsys, fakes, tmp_path):
+    ids = ["t-easy__control__r0", "t-easy__hook__r0", "t-hard__control__r0"]
+    rows = [{"id": i, "label": "complete", "source": "llm:m"} for i in ids]
+    labels = _labels_file(tmp_path, [*rows, {"id": "ghost", "label": "none"}])
+    code, out, _ = run(capsys, "scan", str(RUN), "--labels", str(labels), "--format", "json")
+    assert code == 0
+    data = json.loads(out)
+    notes = data["notes"]
+    assert "1 of 4 label id(s) in --labels match no trial and were ignored (first: ghost)." in notes
+    # 5 graded trials: 3 labelled from the file, t-hard__hook__r0 keeps its rule label,
+    # t-notag__control__r0 has no transcript and so no label at all.
+    assert any(n.startswith("1 of 5 graded trial(s) have no entry in --labels") for n in notes)
+    assert data["label_sources"] == {"llm:m": 3, "rules": 1}
+    code, out, _ = run(capsys, "scan", str(RUN), "--labels", str(labels))
+    assert "match no trial and were ignored" in out
+    assert "keep their rule labels" in out
+
+
+def test_labels_complete_coverage_has_no_note(capsys, fakes, tmp_path):
+    ids = ["t-easy__control__r0", "t-easy__hook__r0", "t-hard__control__r0", "t-hard__hook__r0"]
+    ids.append("t-notag__control__r0")
+    labels = _labels_file(tmp_path, [{"id": i, "label": "partial"} for i in ids])
+    code, out, _ = run(capsys, "scan", str(RUN), "--labels", str(labels), "--format", "json")
+    assert code == 0
+    assert not any("--labels" in n for n in json.loads(out)["notes"])
+
+
+def test_labels_prefixed_ids_match_bare_trial_ids(capsys, fakes, tmp_path):
+    labels = _labels_file(
+        tmp_path,
+        [{"id": "ab-mini/t-hard__control__r0", "label": "incomplete", "source": "manual"}],
+    )
+    out_jsonl = tmp_path / "t.jsonl"
+    code, _, err = run(capsys, "export", str(RUN), "--labels", str(labels), "--out", str(out_jsonl))
+    assert code == 0
+    rows = {r["id"]: r for r in map(json.loads, out_jsonl.read_text(encoding="utf-8").splitlines())}
+    assert rows["t-hard__control__r0"]["claim"] == "incomplete"
+    assert rows["t-hard__control__r0"]["claim_source"] == "manual"
+    assert "keep their rule labels" in err  # export reports the mix on stderr
+
+
 # --------------------------------------------------------------------------- integration
 
 

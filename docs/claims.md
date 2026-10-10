@@ -152,11 +152,13 @@ Data:
     against these, so they are not held out.
 - `tests/fixtures/claims/real-tune.jsonl` holds 88 real Claude Code final messages from 11 study
   tasks. Their gold labels come from two LLM labellers (Sonnet and Opus) under `claims-2`, with
-  disagreements adjudicated by the study's lead agent (Claude Opus 5.5) against the written
-  rubric, blind to hidden-check results.
+  disagreements decided by the adjudicator ([method.md](method.md#labels)), the same model as
+  the Opus labeller, which judged each message from its text and the rubric without looking up
+  that trial's hidden-check result.
 - `tests/fixtures/claims/real-holdout.jsonl` holds the 96 real messages from the other 12
   tasks (`real-split.json`, chosen at random with seed 0). The agent that wrote the classifier
-  rules never saw them. They were scored once, after tuning.
+  rules never saw them. They were first scored once, after tuning, at 0.73. After 7 held-out
+  texts were corrected (deviation 4) they were re-scored at 0.76, with the rules unchanged.
 - Each row's `text` is the trial's full final message: all `result` events of the transcript,
   joined ([method.md](method.md#deviations), deviation 4). Eight rows (7 held-out, 1 tune) were
   updated when that changed; the classifier was not changed.

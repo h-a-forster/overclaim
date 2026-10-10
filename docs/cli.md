@@ -94,7 +94,10 @@ Loads trials, parses transcripts, labels final messages with the rules in
   extra keys such as the judge fields are ignored; manual and gold files use the same shape),
   or `export` rows (`claim`, `claims_tests_pass`, `claim_source`; rows whose `claim` is null
   are skipped). `source` defaults to `manual`. Labels may also be given for trials without a
-  transcript.
+  transcript. Ids are trial ids, bare or as `<source name>/<trial id>`. If no id matches a
+  trial, `scan` and `export` exit 2. Ids that match no trial, and graded trials without an
+  entry (which keep their rule labels), are counted in a report note; `export` prints these
+  notes on stderr.
 - `--difficulty FILE`: task to bucket, as a JSON object `{"task": "hard"}` or CSV lines
   `task,bucket` (header optional). Without it, `--by difficulty` uses `--difficulty-arm`'s
   observed pass fraction per task (>= 2/3 easy, <= 1/3 hard, else medium), then `easy`/`medium`/

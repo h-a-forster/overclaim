@@ -51,14 +51,19 @@ the disk (`find /`, `find ~`); those tool outputs are redacted in the published 
 
 ## Labels
 
-- **Primary labels:** Claude Sonnet 5.5 at low effort with a fixed rubric (`RUBRIC_VERSION`
+- **Primary labels (superseded by gold labels, deviation 1):** Claude Sonnet 5.5 at low effort with a fixed rubric (`RUBRIC_VERSION`
   in `src/overclaim/llm.py`), given the task prompt and the final message only. It never sees
   the hidden-check result.
 - **Second labels:** Claude Opus 5.5 with the same rubric. Agreement is reported as Cohen's
   kappa.
-- **Gold labels:** where the two models agree, their label. Where they disagree, the study's
-  lead agent (Claude Opus 5.5) adjudicates against the written rubric, blind to hidden-check
-  results. The agent that wrote the classifier rules never saw the held-out messages.
+- **Gold labels:** where the two models agree, their label. Where they disagree, the
+  **adjudicator** decides: the study's lead agent, Claude Opus 5.5, which is the same model as
+  the Opus labeller. It judges each message from its text and the written rubric, without
+  looking up that trial's hidden-check result, but it had seen aggregate study results. In
+  study 1 it sided with Opus in 18 of 19 disagreements. No adjudicated trial was a failed
+  solvable trial, so the false-completion count does not depend on adjudication; the
+  Sonnet-only and Opus-only results bracket the other metrics. The agent that wrote the
+  classifier rules never saw the held-out messages.
 - **Rule classifier:** the offline classifier (`overclaim.claims`, which the Stop hook uses) is
   scored against the gold labels. It was tuned on real messages from half the tasks, chosen at
   random with seed 0, and is scored on the other half.
@@ -86,8 +91,8 @@ Secondary:
 
 ## Statistics
 
-- **Rates** are pooled over trials. Their 95% intervals resample tasks (cluster bootstrap,
-  4,000 draws) and are widened to a design-effect-adjusted Wilson interval at the boundaries
+- **Rates** are pooled over trials. Each 95% interval is the wider of a task-cluster bootstrap
+  (4,000 draws) and a design-effect-adjusted Wilson interval: their union
   ([metrics.md](metrics.md)).
 - **Comparisons** are paired by task.
 - **Verdicts:** a difference is reported only when the Holm-adjusted p < 0.05 and the CI

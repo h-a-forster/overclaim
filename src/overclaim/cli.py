@@ -303,6 +303,50 @@ class Analysed:
     read: int = 0
     missing: int = 0
     unreadable: list[str] = field(default_factory=list)
+    label_notes: list[str] = field(default_factory=list)  # how --labels matched the trials
+
+
+def match_labels(
+    override: Mapping[str, ClaimResult], trials: Sequence[Trial], source: str = "--labels"
+) -> tuple[dict[str, ClaimResult], list[str]]:
+    """Map label ids onto trial ids: (trial id -> label, notes on what did not match).
+
+    An id matches a trial id exactly; failing that, ``<source>/<trial id>`` matches a bare
+    trial id and a bare trial id matches ``<source>/<trial id>`` (the prefix ``scan`` adds
+    when ids collide across sources), provided the match is unique. Raises UsageError when no
+    id matches at all, since every claim metric would then silently use the rule labels.
+    """
+    ids = {t.id for t in trials}
+    by_tail: dict[str, list[str]] = {}
+    for tid in ids:
+        by_tail.setdefault(tid.rsplit("/", 1)[-1], []).append(tid)
+    matched: dict[str, ClaimResult] = {}
+    unmatched: list[str] = []
+    for lid, claim in override.items():
+        if lid in ids:
+            target: str | None = lid
+        else:
+            cands = by_tail.get(lid.rsplit("/", 1)[-1], [])
+            target = cands[0] if len(cands) == 1 else None
+        if target is None:
+            unmatched.append(lid)
+        else:
+            matched[target] = claim
+    if override and not matched:
+        example = sorted(ids)[0] if ids else "-"
+        raise UsageError(
+            f"none of the {len(override)} label id(s) in {source} match a trial "
+            f"(first label id {sorted(unmatched)[0]!r}; trial ids look like {example!r}). "
+            "Use the trial ids that 'overclaim export' writes, bare or as "
+            "'<source name>/<trial id>'."
+        )
+    notes: list[str] = []
+    if unmatched:
+        notes.append(
+            f"{len(unmatched)} of {len(override)} label id(s) in {source} match no trial and "
+            f"were ignored (first: {sorted(unmatched)[0]})."
+        )
+    return matched, notes
 
 
 def _load_trials(paths: Sequence[str]) -> list[Trial]:
@@ -428,7 +472,16 @@ def analyse(
         if keep_transcripts:
             a.transcripts[t.id] = tr
     if labels_override:
-        a.labels.update({k: v for k, v in labels_override.items() if k in {t.id for t in trials}})
+        matched, a.label_notes = match_labels(labels_override, trials)
+        fallback = [t.id for t in trials if t.passed is not None and t.id not in matched]
+        ruled = [tid for tid in fallback if tid in a.labels]
+        a.labels.update(matched)
+        if ruled:
+            graded = sum(1 for t in trials if t.passed is not None)
+            a.label_notes.append(
+                f"{len(ruled)} of {graded} graded trial(s) have no entry in --labels and keep "
+                "their rule labels, so the claim metrics mix label sources."
+            )
     return a
 
 
@@ -515,6 +568,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
         count_all_edits=args.count_all_edits,
         keep_transcripts="judge" in args.detectors,
     )
+    notes += a.label_notes
     if a.unreadable:
         notes.append(
             f"{len(a.unreadable)} transcript(s) could not be read; first: {a.unreadable[0]}"
@@ -1050,6 +1104,8 @@ def cmd_export(args: argparse.Namespace) -> int:
         count_all_edits=args.count_all_edits,
         keep_transcripts=True,
     )
+    for note in a.label_notes:
+        _warn(note)
     rows = list(export_rows(a))
     for r in rows:
         tr = a.transcripts.get(r["id"])

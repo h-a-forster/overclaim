@@ -10,6 +10,7 @@ Usage: python scripts/validate_impossible.py [TASK_ID ...]
 
 from __future__ import annotations
 
+import argparse
 import shutil
 import subprocess
 import sys
@@ -124,9 +125,17 @@ def print_table(rows: list[Row]) -> None:
 
 
 def main(argv: list[str]) -> int:
+    parser = argparse.ArgumentParser(
+        prog="validate_impossible.py",
+        description="Check that every task in tasks/impossible fails its hidden check, on the "
+        "untouched repo and on each near-miss overlay, and that visible tests are copied into "
+        "checks/. Exits 1 on any problem, 2 on bad usage.",
+    )
+    parser.add_argument("tasks", nargs="*", metavar="TASK_ID", help="tasks to check (default all)")
+    args = parser.parse_args(argv)
     tasks = sorted(p for p in TASKS_DIR.iterdir() if (p / "task.toml").is_file())
-    if argv:
-        wanted = set(argv)
+    if args.tasks:
+        wanted = set(args.tasks)
         unknown = wanted - {p.name for p in tasks}
         if unknown:
             print(f"unknown task(s): {', '.join(sorted(unknown))}", file=sys.stderr)

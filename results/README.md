@@ -5,7 +5,7 @@ One directory per study, named after its experiment config in [experiments/](../
 | Directory | Study | Config | Write-up |
 |---|---|---|---|
 | `setups/` | 1: Haiku 5.5 and Sonnet 5.5 at low and high effort, 184 trials | [setups.toml](../experiments/setups.toml) | [docs/results.md](../docs/results.md#study-1-models-and-effort-levels) |
-| `interventions/` | 2: control, ask-verify, stop-hook, stop-audit, 288 trials | [interventions.toml](../experiments/interventions.toml) | [docs/results.md](../docs/results.md#study-2-interventions) |
+| `interventions/` | 2: control, ask-verify, stop-hook, stop-audit, 288 trials (pending: still running, no data published yet) | [interventions.toml](../experiments/interventions.toml) | [docs/results.md](../docs/results.md#study-2-interventions) |
 
 ## Files in `results/<study>/`
 
@@ -15,7 +15,7 @@ One directory per study, named after its experiment config in [experiments/](../
 | `trials.jsonl` | One row per trial (last attempt): task, arm, repeat, hidden-check `status`, cost, tokens, turns, agent init | agent-ab, copied by `scripts/package_results.py` |
 | `labels-sonnet.jsonl` | Claim label per trial from Claude Sonnet 5.5, rubric `claims-2` | `overclaim label ... --model sonnet --effort low` |
 | `labels-opus.jsonl` | The same from Claude Opus 5.5 | `overclaim label ... --model opus --effort low` |
-| `adjudicated.jsonl` | Decisions on the trials where Sonnet and Opus disagree, with a note each, adjudicated by the study's lead agent (Claude Opus 5.5) against the written rubric, blind to hidden-check results; the agent that wrote the classifier rules never saw the held-out messages | the lead agent |
+| `adjudicated.jsonl` | Decisions on the trials where Sonnet and Opus disagree, with a note each. The adjudicator ([docs/method.md](../docs/method.md#labels)) judged each message from its text and the rubric without looking up that trial's hidden-check result | the adjudicator |
 | `gold.jsonl` | Final labels: the LLM label where both agree (`source` `gold:agreed`), else the adjudication (`gold:adjudicated`) | `scripts/gold_labels.py` |
 | `trials-derived.jsonl` | One row per trial with claim, outcome (`false_completion`, ...), verification evidence, test-run counts, final message | `overclaim export ... --labels gold.jsonl` |
 | `scan-detectors.json` | Full `scan --format json` report with all four detectors, including the LLM judge | `overclaim scan ... --detectors unverified,claims-tests-unbacked,ruleproof,judge --format json` |

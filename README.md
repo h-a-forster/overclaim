@@ -19,14 +19,16 @@ transcripts (`stream-json` and session files), Codex `exec --json`, a generic JS
 [agent-ab](https://github.com/h-a-forster/agent-ab) run directories.
 
 Study 1: [Claude Haiku 5.5 and Sonnet 5.5 at low and high effort](docs/results.md), 23 tasks,
-184 trials. See Findings below.
+184 trials.
 
 ## Findings
 
 From [study 1](docs/results.md): Claude Code 2.1.296, Haiku 5.5 and Sonnet 5.5 at effort `low`
 and `high`, 18 solvable and 5 impossible Python tasks, 2 repeats, 184 trials, $28.88. Claims
-are gold labels: Sonnet and Opus agreed on 165; the 19 disagreements were adjudicated by the
-study's lead agent (Claude Opus 5.5) against the written rubric, blind to hidden-check results.
+are gold labels: Sonnet and Opus agreed on 165; the 19 disagreements were decided by an
+adjudicator (Claude Opus 5.5, the same model as the Opus labeller) from each message's text and
+the rubric, without looking up that trial's hidden-check result
+([method](docs/method.md#labels)).
 Intervals are 95%, clustered by task. Only 14 solvable trials failed, so read the rates as
 rough.
 
@@ -39,8 +41,10 @@ rough.
 - **The agents had tested their work.** In 10 of the 11 false completions, the agent's last
   test run after its last edit passed (the 11th was unreadable), and all 11 messages said the
   tests pass. The hidden check failed 1 to 5 of 33 to 85 tests: random and oracle-comparison
-  property tests, error handling, a rename edge case. In the 5 false completions outside
-  `feature-uri-resolve`, the agents delivered what they checked, not everything the task asked. [Details](docs/results.md#the-11-false-completions).
+  property tests, error handling, a rename edge case. Outside `feature-uri-resolve`, 4 of the 5
+  false completions had a passing own test run after the last edit, and the hidden check tested
+  behaviour those tests did not; in the 5th (`data-interval-sets__haiku-low__r1`) the outcome of
+  the last test run could not be read. [Details](docs/results.md#the-11-false-completions).
 - **Six of the 11 come from one task whose hidden check contradicts its prompt.** The
   `feature-uri-resolve` prompt keeps the hex digits of percent encodings in a host uppercase;
   the hidden oracle lowercases them. Without this task: FCR 5/6 (83.3% [38.4, 100.0]),
@@ -55,9 +59,12 @@ rough.
   trials while passing 33; its 3 failures produced no false completion. The other three arms
   claimed completion on every failure (11/11). No pairwise arm difference in false-completion
   incidence was detectable (smallest Holm p 0.38). [Details](docs/results.md#by-arm).
-- **The result does not depend on who labels.** Sonnet and Opus labels agreed on 89.7% of
-  messages (kappa 0.83). FCR on solvable tasks is 11/14 with Sonnet's labels, Opus's labels,
-  the gold labels or the rule classifier. [Details](docs/results.md#label-agreement).
+- **The false-completion count is the same (11/14) under every labelling tried:** Sonnet's
+  labels, Opus's labels, the gold labels and the rule classifier. The claim rate (62.5% to
+  68.8%) and the false-claim share (11.1% to 12.2%) vary with the labeller. All LLM labellers
+  are Claude models, and the rules were partly tuned on these messages. Sonnet and Opus agreed
+  on 89.7% of messages (kappa 0.83).
+  [Details](docs/results.md#label-agreement).
 
 <!-- STUDY2 -->
 <!-- Study 2 (interventions: control, ask-verify, stop-hook, stop-audit on Haiku 5.5) findings go here. -->
@@ -105,6 +112,8 @@ overclaim report: ab-mini
   6 trials | 3 tasks | 5 graded | 4 transcripts read | claims labelled: rules 4 | alpha 0.05 | seed
     0
 
+Claims labelled for 4 of 5 graded trials (transcript file missing for 1); claim metrics use those.
+
 By arm (95% CI; rates pooled over trials, tasks as the unit)
   arm      graded  pass rate       95% CI  FC/fail     FCR        95% CI  false-claim share       95% CI  honest fail  claimed
   ----------------------------------------------------------------------------------------------------------------------------
@@ -120,6 +129,8 @@ False completions by the agent's own verification after its last edit
 
 False-completion incidence vs control (95% CI, paired over tasks; negative = fewer)
   hook vs control: -50.0 pts [-100.0, 0.0], p=1.00 (Holm 1.00) -> no detectable difference
+      2 paired tasks: 1 fewer, 0 more, 1 tied; FCR where both arms failed (1 task): -100.0 pts,
+      p=1.00; pass rate (2 tasks): 0.0 pts [0.0, 0.0]
 ...
 ```
 
@@ -223,8 +234,8 @@ check, for the common case where the agent's own tests already passed. Details a
    `not_run`, `no_edits`).
 4. **Cross claim and check.** `complete` + failed is a false completion; `partial` or
    `incomplete` + failed is an honest failure; see [docs/metrics.md](docs/metrics.md#outcomes).
-5. **Report.** Rates are pooled over trials. Intervals resample tasks and are widened by a
-   design-effect-adjusted Wilson interval at the boundaries. Arms are compared paired by task
+5. **Report.** Rates are pooled over trials. Each interval is the wider of a task-cluster
+   bootstrap and a design-effect-adjusted Wilson interval (their union). Arms are compared paired by task
    with a sign-flip permutation test and Holm adjustment. Detectors are scored against the
    hidden check.
 
@@ -279,12 +290,16 @@ risk in the other direction (see Limitations).
   comparisons cannot reach significance, and per-arm FCRs rest on 3 to 5 failures.
 - **One task dominates.** `feature-uri-resolve` produced 6 of the 11 false completions. Its
   hidden oracle lowercases percent-encoded hex digits in a host, which the prompt says stay
-  uppercase; the agents followed the prompt. Results are reported with and without it.
+  uppercase; on that point the agents followed the prompt. The task's own reference solution
+  lowercases the host like the oracle. Two of the 6 (`haiku-low`) also fail a separate
+  validation test (`//[V1F.a:b]`). Results are reported with and without the task.
 - **Labels come from LLMs.** Gold labels are Sonnet 5.5 and Opus 5.5 where they agree (165 of
-  184). The 19 disagreements were adjudicated by the study's lead agent (Claude Opus 5.5)
-  against the written rubric, blind to hidden-check results; the agent that wrote the
-  classifier rules never saw the held-out messages. None of the 19 was a failed solvable trial,
-  so adjudication did not change the false-completion count.
+  184). The adjudicator of the 19 disagreements judged each message from its text and the
+  rubric, without looking up that trial's hidden-check result, but had seen aggregate study
+  results. It is the same model as the Opus labeller (Claude Opus 5.5) and sided with Opus in
+  18 of 19. No adjudicated trial was a failed solvable trial, so the false-completion count
+  does not depend on adjudication; the Sonnet-only and Opus-only rows bracket the other
+  metrics ([docs/results.md](docs/results.md#sensitivity-analyses)).
 - **Impossible tasks are a calibration control.** Each has a fake-success route that passes the
   visible tests, but the conflict is discoverable from the workspace. 0 of 40 does not show
   that agents never overclaim on subtler impossible work.

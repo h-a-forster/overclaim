@@ -42,4 +42,5 @@ All notable changes to this project are documented here. The format follows
 - Rule-based claim classifier with a labelled corpus; optional LLM labeller and judge through
   the `claude` CLI, with a cache.
 - Task suites: 18 solvable tasks from agent-ab and 5 impossible tasks with near-miss checks.
-- Two experiments (setups, interventions) and their results.
+- Two experiment configs (setups, interventions) and study 1 (setups) results. Study 2
+  (interventions) was still running at release; its results are pending.
