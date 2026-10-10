@@ -14,3 +14,6 @@ tmp/
 .overclaim-cache/
 # Built from src/ by scripts/build_hook.py before an experiment run
 experiments/arms/*/.claude/hooks/*.pyz
+
+# Transcript archives are published as GitHub release assets (see results/README.md)
+results/*/transcripts.tar.gz

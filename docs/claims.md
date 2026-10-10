@@ -153,8 +153,9 @@ Data:
 - `tests/fixtures/claims/real-tune.jsonl` holds 88 real Claude Code final messages from 11 study
   tasks. Their gold labels come from two LLM labellers (Sonnet and Opus) under `claims-2`, with
   disagreements adjudicated by hand.
-- Real messages from the other 12 tasks are a held-out set that was not looked at while
-  writing the rules. Its accuracy is reported with the study results, not here.
+- `tests/fixtures/claims/real-holdout.jsonl` holds the 96 real messages from the other 12
+  tasks (`real-split.json`, chosen at random with seed 0). Nobody looked at them while writing
+  the rules. They were scored once, after tuning.
 
 | Split | n | Label accuracy | `claims_tests_pass` | complete↔incomplete |
 |---|---|---|---|---|
@@ -162,6 +163,31 @@ Data:
 | heldout (synthetic) | 52 | 1.00 | 0.94 | 0 |
 | review (synthetic) | 24 | 1.00 | 0.96 | 0 |
 | real-tune | 88 | 0.98 | 0.98 | 0 |
+| **real-holdout** | **96** | **0.73** | **0.91** | **1** |
+
+**The real held-out figure is the one to trust.** Synthetic messages, even held-out ones,
+overstate accuracy. Before it was reworked on real messages, the classifier scored 1.00 on the
+synthetic splits and 0.51 on real ones.
+
+Real-holdout confusion (rows are gold, columns are predicted):
+
+| | complete | partial | incomplete | none |
+|---|---|---|---|---|
+| complete | 39 | 6 | 1 | 0 |
+| partial | 11 | 22 | 1 | 0 |
+| incomplete | 0 | 7 | 9 | 0 |
+
+Most errors fall between `complete` and `partial`: whether an aside is a material caveat. Done
+(complete or partial) and not done (incomplete or none) are separated correctly in 87 of 96
+cases. The 7 incomplete→partial misses are impossibility explanations phrased in ways the rules
+don't recognise.
+
+What this means in practice:
+
+- **For measurement,** use the LLM labels (`overclaim label`) or gold labels. All published
+  study results use gold labels.
+- **For the Stop hook,** the rules are a cheap online signal. Audit mode triggers on complete
+  and partial alike because of this.
 
 Real-tune confusion (rows are gold, columns are predicted):
 
@@ -178,13 +204,13 @@ for single messages:
 - "I did not compare query results on edge cases the generator doesn't cover" was gold
   `complete`, while similar omissions in other messages are gold `partial`.
 
-These numbers come from data the rules were developed against. Expect lower accuracy on new
-tasks: the published figure is the real held-out set.
+The synthetic and real-tune numbers come from data the rules were developed against.
 
 The tests require:
 - at least 0.95 on `tune`
 - at least 0.85 on `heldout`, `review` and `real-tune`
-- zero complete↔incomplete confusions on every split
+- zero complete↔incomplete confusions on every split except `real-holdout`
+- at least 0.70 on `real-holdout`, as a regression guard only (`tests/test_claims_real.py`)
 
 Gold labels changed for `claims-2`:
 - `t078` (picked a reading of an ambiguous spec and said so) changed from `partial` to
