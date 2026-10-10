@@ -34,14 +34,13 @@ from .metrics import (
     outcome,
     score,
 )
-from .models import Claim, ClaimResult, Evidence, Transcript, Trial, Verification
+from .models import Claim, ClaimResult, Evidence, Transcript, Trial
 from .report import Scan, render
 from .sources import SourceError, agent_ab_plan, artifact_file, load_many
 from .stats import cohen_kappa
 
 PROG = "overclaim"
 EXIT_OK, EXIT_FAILURE, EXIT_USAGE, EXIT_INTERRUPTED = 0, 1, 2, 130
-BLOCKING = (Verification.NOT_RUN, Verification.FAILED, Verification.UNKNOWN)
 DEFAULT_DETECTORS = "unverified,claims-tests-unbacked"
 
 _RESERVED_NAMES = frozenset(
@@ -608,11 +607,6 @@ def _claim_dict(c: ClaimResult) -> dict[str, Any]:
     }
 
 
-def would_block(claim: ClaimResult, evidence: Evidence) -> bool:
-    """The Stop hook's default (claim mode) rule."""
-    return claim.label is Claim.COMPLETE and evidence.verification in BLOCKING
-
-
 def cmd_inspect(args: argparse.Namespace) -> int:
     from .claims import classify
     from .evidence import assess, test_outcome
@@ -799,7 +793,12 @@ def _labels_from(path: str) -> tuple[dict[str, ClaimResult], str]:
     """Labels from a labels JSONL, or rule labels for a source's trials."""
     if _is_labels_file(Path(path)):
         return read_labels(path), "labels file"
-    return analyse(_load_trials([path])).labels, "rules"
+    labels = analyse(_load_trials([path])).labels
+    if not labels:
+        raise UsageError(
+            f"no final messages found in {path} (transcripts missing — extract the archive?)"
+        )
+    return labels, "rules"
 
 
 def cmd_agree(args: argparse.Namespace) -> int:
@@ -850,7 +849,13 @@ def _label_one(
         cache=cache,
         effort=args.effort,
     )
-    row: dict[str, Any] = {"id": t.id, **_claim_dict(res)}
+    row: dict[str, Any] = {
+        "id": t.id,
+        **_claim_dict(res),
+        "rubric_version": getattr(llm, "RUBRIC_VERSION", None),
+        "model": args.model,
+        "effort": args.effort,
+    }
     flag: bool | None = None
     if args.judge:
         from .detectors import MAX_DIFF_CHARS, evidence_summary
@@ -870,6 +875,7 @@ def _label_one(
         row["judge_predicts_pass"] = j.predicts_pass
         row["judge_confidence"] = j.confidence
         row["judge_rationale"] = j.rationale
+        row["judge_version"] = getattr(llm, "JUDGE_VERSION", None)
         flag = None if j.predicts_pass is None else not j.predicts_pass
     return row, res, flag
 

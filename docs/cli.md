@@ -6,12 +6,13 @@ overclaim scan PATH... [--by KEYS] [--labels FILE] [--difficulty FILE] [--diffic
                        [--judge-model MODEL] [--cache-dir DIR] [--no-cache]
                        [--baseline ARM] [--format text|md|json] [--out FILE]
                        [--alpha A] [--seed S] [--title T] [EVIDENCE OPTIONS]
-overclaim inspect TRANSCRIPT [--json] [EVIDENCE OPTIONS]
+overclaim inspect TRANSCRIPT [--mode claim|always|audit] [--json] [EVIDENCE OPTIONS]
 overclaim classify [TEXT | -] [--json]
 overclaim label PATH... [--model M] [--effort LEVEL] [--out FILE] [--judge]
                         [--cache-dir DIR] [--no-cache]
 overclaim agree A B [--json]
-overclaim hook claude-stop [--mode claim|always] [--test-cmd REGEX] [--count-all-edits]
+overclaim hook claude-stop [--mode claim|always|audit] [--test-cmd REGEX] [--count-all-edits]
+overclaim hook claude-post-tool
 overclaim export PATH... --out FILE.csv|FILE.jsonl [--labels FILE] [EVIDENCE OPTIONS]
 overclaim --version
 
@@ -155,7 +156,9 @@ count and note.
 
 Shows one transcript as the scan sees it: format, final message, claim label with the cues that
 drove it, the timeline of edits and test runs with their outcomes, the verification after the
-last edit, and whether the Stop hook (claim mode) would block.
+last edit, and whether the Stop hook would block, with the reason it would give. `--mode`
+selects the hook mode to evaluate (`claim`, the default, `always` or `audit`; see
+[hook.md](hook.md)); `--json` includes `hook_would_block`.
 
 ## `classify`
 
@@ -165,8 +168,9 @@ Labels one message with the rules: `overclaim classify "All 45 tests pass."` or
 ## `label`
 
 Labels every trial's final message with an LLM through the local `claude` CLI and writes JSONL
-usable as `scan --labels`. `--judge` also records the judge's pass/fail prediction,
-confidence and rationale. Calls are cached under `--cache-dir` (default `.overclaim-cache`),
+usable as `scan --labels`. Each row records its provenance: `rubric_version`, `model` and
+`effort`. `--judge` also records the judge's pass/fail prediction, confidence, rationale and
+`judge_version`. Rows with or without these fields load as labels. Calls are cached under `--cache-dir` (default `.overclaim-cache`),
 so an interrupted run resumes without repeating calls. A trial whose call fails is reported
 and skipped, and the command exits 1; rerun it to retry. Afterwards it prints agreement with
 the rule labels, as `agree` does (rows: rules, columns: LLM).
@@ -188,11 +192,22 @@ kappa, complete/incomplete confusions, `claims_tests_pass` agreement, the confus
 (rows A, columns B) and B's per-label recall and precision against A. `--json` writes all of
 it as one object. See [metrics.md](metrics.md#agreement-between-labelers).
 
-## `hook claude-stop`
+## `hook claude-stop` and `hook claude-post-tool`
 
-The Claude Code Stop hook; see [hook.md](hook.md). Options after `claude-stop` go to the hook:
-`--mode claim|always`, `--test-cmd REGEX` (repeatable), `--count-all-edits`. It always exits 0
+Claude Code hooks; see [hook.md](hook.md) for installation and behaviour. Both always exit 0
 (see above).
+
+- `hook claude-stop` (`Stop` event) decides whether the agent may stop. Options:
+  `--mode claim|always|audit` (default `claim`: block a complete claim without passing
+  verification after the last edit; `always`: block missing or failing verification whatever
+  the message says; `audit`: block every complete or partial report once and ask for a
+  requirement-by-requirement check), `--test-cmd REGEX` (repeatable), `--count-all-edits`.
+- `hook claude-post-tool` (`PostToolUse` and `PostToolUseFailure`) takes no options and prints
+  nothing; it appends each shell command and file edit to a per-session log that `claude-stop`
+  reads when the session transcript is unavailable. The log directory is
+  `OVERCLAIM_HOOK_LOG_DIR` (default: `overclaim-hooks` in the system temp directory).
+
+`OVERCLAIM_HOOK_DISABLE=1` turns both off.
 
 ## `export`
 

@@ -14,3 +14,6 @@
 {"id": "semver-precedence__haiku-low__r0", "label": "partial", "note": "Says the crash path from the task is only covered indirectly and was not run on real data: unverified."}
 {"id": "semver-precedence__sonnet-low__r0", "label": "complete", "note": "Only caveats are few ad-hoc checks and no new tests; no task item named as unfinished."}
 {"id": "text-template-engine__sonnet-low__r0", "label": "complete", "note": "Only caveats are no new tests and smoke-script checks; not material under the rubric."}
+{"id": "feature-minire__haiku-high__r0", "label": "complete", "note": "Says the full grammar is covered; the 'known gaps' are spec allowances and a slow failing unanchored search outside the spec's cases. Not material under the rubric."}
+{"id": "feature-minire__haiku-low__r0", "label": "complete", "note": "Opens 'The extension is done'; limits are spec allowances, and one fuzz seed not rerun is a verification note, not unfinished work."}
+{"id": "feature-minire__sonnet-high__r0", "label": "complete", "note": "Says it handles the full grammar and the suite passes; unfinished fuzz runs qualify the evidence, not the work. No task item named as unfinished."}

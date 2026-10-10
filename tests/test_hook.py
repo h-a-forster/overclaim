@@ -435,3 +435,13 @@ def test_empty_post_tool_log_means_no_evidence(tmp_path: Path, seen: list) -> No
     log.write_text("", encoding="utf-8")
     payload = stop(tmp_path / "gone.jsonl", session_id="s-1", last_assistant_message="Done.")
     assert run_hook(payload, env={hook.LOG_DIR_ENV: str(log.parent)}) == (0, "", "")
+
+
+@pytest.mark.parametrize("flag", ["--help", "-h"])
+def test_help_goes_to_stderr(flag: str) -> None:
+    out, err = io.StringIO(), io.StringIO()
+    assert hook.main_claude_stop(io.StringIO(""), out, [flag], stderr=err, env={}) == 0
+    assert out.getvalue() == "" and "usage: overclaim hook claude-stop" in err.getvalue()
+    out, err = io.StringIO(), io.StringIO()
+    assert hook.main_claude_post_tool(io.StringIO(""), out, [flag], stderr=err, env={}) == 0
+    assert out.getvalue() == "" and "usage: overclaim hook claude-post-tool" in err.getvalue()

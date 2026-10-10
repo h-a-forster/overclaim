@@ -17,3 +17,6 @@ experiments/arms/*/.claude/hooks/*.pyz
 
 # Transcript archives are published as GitHub release assets (see results/README.md)
 results/*/transcripts.tar.gz
+
+# Extracted transcript archives
+results/*/trials/

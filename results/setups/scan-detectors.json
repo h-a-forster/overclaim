@@ -19,11 +19,11 @@
       "passes": 130,
       "fails": 54,
       "outcomes": {
-        "true_completion": 85,
+        "true_completion": 87,
         "false_completion": 11,
-        "honest_failure": 42,
-        "underclaim": 45,
-        "silent": 1
+        "honest_failure": 43,
+        "underclaim": 43,
+        "silent": 0
       },
       "pass_rate": {
         "k": 130,
@@ -48,37 +48,37 @@
         "n_eff": 11.666170450316336
       },
       "claim_rate": {
-        "k": 96,
+        "k": 98,
         "n": 184,
-        "estimate": 0.5217391304347826,
-        "low": 0.3804347826086957,
-        "high": 0.6521739130434783,
+        "estimate": 0.532608695652174,
+        "low": 0.391304347826087,
+        "high": 0.6630434782608695,
         "method": "cluster-bootstrap",
         "tasks": 23,
         "skipped": 0.0,
-        "n_eff": 52.71015314804311
+        "n_eff": 51.53307392996109
       },
       "false_claim_share": {
         "k": 11,
-        "n": 96,
-        "estimate": 0.11458333333333333,
-        "low": 0.021505376344086023,
-        "high": 0.292459094709256,
+        "n": 98,
+        "estimate": 0.11224489795918367,
+        "low": 0.021499656829100895,
+        "high": 0.28791525648100474,
         "method": "wilson-deff",
         "tasks": 18,
         "skipped": 0.0,
-        "n_eff": 25.12345259778347
+        "n_eff": 25.520875351581253
       },
       "honest_failure_rate": {
-        "k": 42,
+        "k": 43,
         "n": 54,
-        "estimate": 0.7777777777777778,
-        "low": 0.45454545454545453,
+        "estimate": 0.7962962962962963,
+        "low": 0.5,
         "high": 0.9661016949152542,
         "method": "cluster-bootstrap",
         "tasks": 11,
         "skipped": 0.0,
-        "n_eff": 9.674850696748505
+        "n_eff": 11.666170450316336
       },
       "fc_by_verification": {
         "passed": 10,
@@ -177,10 +177,10 @@
         "passes": 31,
         "fails": 15,
         "outcomes": {
-          "true_completion": 25,
+          "true_completion": 26,
           "false_completion": 5,
           "honest_failure": 10,
-          "underclaim": 6,
+          "underclaim": 5,
           "silent": 0
         },
         "pass_rate": {
@@ -206,26 +206,26 @@
           "n_eff": 8.333333333333332
         },
         "claim_rate": {
-          "k": 30,
+          "k": 31,
           "n": 46,
-          "estimate": 0.6521739130434783,
-          "low": 0.4760172697117111,
-          "high": 0.8043478260869565,
+          "estimate": 0.6739130434782609,
+          "low": 0.49266739261627923,
+          "high": 0.8260869565217391,
           "method": "wilson-deff",
           "tasks": 23,
           "skipped": 0.0,
-          "n_eff": 30.877192982456137
+          "n_eff": 29.22857142857143
         },
         "false_claim_share": {
           "k": 5,
-          "n": 30,
-          "estimate": 0.16666666666666666,
-          "low": 0.034482758620689655,
-          "high": 0.36394290461758616,
+          "n": 31,
+          "estimate": 0.16129032258064516,
+          "low": 0.03333333333333333,
+          "high": 0.35540756837404897,
           "method": "wilson-deff",
           "tasks": 18,
           "skipped": 0.0,
-          "n_eff": 22.8494623655914
+          "n_eff": 23.354996920911407
         },
         "honest_failure_rate": {
           "k": 10,
@@ -256,10 +256,10 @@
         "passes": 33,
         "fails": 13,
         "outcomes": {
-          "true_completion": 23,
+          "true_completion": 24,
           "false_completion": 3,
           "honest_failure": 10,
-          "underclaim": 10,
+          "underclaim": 9,
           "silent": 0
         },
         "pass_rate": {
@@ -285,26 +285,26 @@
           "n_eff": 6.390756302521006
         },
         "claim_rate": {
-          "k": 26,
+          "k": 27,
           "n": 46,
-          "estimate": 0.5652173913043478,
-          "low": 0.3695652173913043,
-          "high": 0.7391304347826086,
+          "estimate": 0.5869565217391305,
+          "low": 0.391304347826087,
+          "high": 0.7608695652173914,
           "method": "cluster-bootstrap",
           "tasks": 23,
           "skipped": 0.0,
-          "n_eff": 26.72897196261682
+          "n_eff": 25.41891891891892
         },
         "false_claim_share": {
           "k": 3,
-          "n": 26,
-          "estimate": 0.11538461538461539,
+          "n": 27,
+          "estimate": 0.1111111111111111,
           "low": 0.0,
-          "high": 0.35669971878148554,
+          "high": 0.34701577090854574,
           "method": "wilson-deff",
           "tasks": 15,
           "skipped": 0.0,
-          "n_eff": 15.137134909596663
+          "n_eff": 15.64137931034483
         },
         "honest_failure_rate": {
           "k": 10,
@@ -336,9 +336,9 @@
         "outcomes": {
           "true_completion": 7,
           "false_completion": 0,
-          "honest_failure": 12,
+          "honest_failure": 13,
           "underclaim": 26,
-          "silent": 1
+          "silent": 0
         },
         "pass_rate": {
           "k": 33,
@@ -385,15 +385,15 @@
           "n_eff": 5.0
         },
         "honest_failure_rate": {
-          "k": 12,
+          "k": 13,
           "n": 13,
-          "estimate": 0.9230769230769231,
-          "low": 0.6571847993519958,
+          "estimate": 1.0,
+          "low": 0.6456695649333126,
           "high": 1.0,
           "method": "wilson-deff",
           "tasks": 7,
           "skipped": 0.0,
-          "n_eff": 12.24144869215291
+          "n_eff": 7.0
         },
         "fc_by_verification": {},
         "fc_claims_tests_pass": 0
@@ -513,45 +513,45 @@
       "complete": {
         "population": "claimed complete",
         "tp": 1,
-        "fp": 13,
+        "fp": 14,
         "fn": 10,
-        "tn": 72,
+        "tn": 73,
         "unknown": 0,
         "precision": {
-          "estimate": 0.07142857142857142,
-          "low": 0.011772213838285778,
-          "high": 0.3318726504292244
+          "estimate": 0.06666666666666667,
+          "low": 0.010930124872278263,
+          "high": 0.3158580752563004
         },
         "recall": {
           "estimate": 0.09090909090909091,
           "low": 0.01135886604798389,
           "high": 0.4653463054022119
         },
-        "f1": 0.08,
+        "f1": 0.07692307692307693,
         "prevalence": {
-          "estimate": 0.11458333333333333,
-          "low": 0.03893900863735833,
-          "high": 0.292459094709256
+          "estimate": 0.11224489795918367,
+          "low": 0.038034133777808996,
+          "high": 0.28791525648100474
         }
       },
       "graded": {
         "population": "all graded",
         "tp": 1,
-        "fp": 13,
+        "fp": 14,
         "fn": 53,
-        "tn": 117,
+        "tn": 116,
         "unknown": 0,
         "precision": {
-          "estimate": 0.07142857142857142,
-          "low": 0.011772213838285778,
-          "high": 0.3318726504292244
+          "estimate": 0.06666666666666667,
+          "low": 0.010930124872278263,
+          "high": 0.3158580752563004
         },
         "recall": {
           "estimate": 0.018518518518518517,
           "low": 0.0028234443347156246,
           "high": 0.11168802402070556
         },
-        "f1": 0.029411764705882353,
+        "f1": 0.028985507246376812,
         "prevalence": {
           "estimate": 0.29347826086956524,
           "low": 0.15318530683434964,
@@ -565,45 +565,45 @@
       "complete": {
         "population": "claimed complete",
         "tp": 1,
-        "fp": 13,
+        "fp": 14,
         "fn": 10,
-        "tn": 72,
+        "tn": 73,
         "unknown": 0,
         "precision": {
-          "estimate": 0.07142857142857142,
-          "low": 0.011772213838285778,
-          "high": 0.3318726504292244
+          "estimate": 0.06666666666666667,
+          "low": 0.010930124872278263,
+          "high": 0.3158580752563004
         },
         "recall": {
           "estimate": 0.09090909090909091,
           "low": 0.01135886604798389,
           "high": 0.4653463054022119
         },
-        "f1": 0.08,
+        "f1": 0.07692307692307693,
         "prevalence": {
-          "estimate": 0.11458333333333333,
-          "low": 0.03893900863735833,
-          "high": 0.292459094709256
+          "estimate": 0.11224489795918367,
+          "low": 0.038034133777808996,
+          "high": 0.28791525648100474
         }
       },
       "graded": {
         "population": "all graded",
         "tp": 2,
-        "fp": 19,
+        "fp": 20,
         "fn": 52,
-        "tn": 111,
+        "tn": 110,
         "unknown": 0,
         "precision": {
-          "estimate": 0.09523809523809523,
-          "low": 0.023775779629304994,
-          "high": 0.3126931034273728
+          "estimate": 0.09090909090909091,
+          "low": 0.022470338550962532,
+          "high": 0.3031510021227109
         },
         "recall": {
           "estimate": 0.037037037037037035,
           "low": 0.00983207291011435,
           "high": 0.1296599986853164
         },
-        "f1": 0.05333333333333334,
+        "f1": 0.05263157894736842,
         "prevalence": {
           "estimate": 0.29347826086956524,
           "low": 0.15318530683434964,
@@ -619,7 +619,7 @@
         "tp": 0,
         "fp": 7,
         "fn": 11,
-        "tn": 78,
+        "tn": 80,
         "unknown": 0,
         "precision": {
           "estimate": 0.0,
@@ -633,9 +633,9 @@
         },
         "f1": 0.0,
         "prevalence": {
-          "estimate": 0.11458333333333333,
-          "low": 0.03893900863735833,
-          "high": 0.292459094709256
+          "estimate": 0.11224489795918367,
+          "low": 0.038034133777808996,
+          "high": 0.28791525648100474
         }
       },
       "graded": {
@@ -671,7 +671,7 @@
         "tp": 1,
         "fp": 4,
         "fn": 10,
-        "tn": 81,
+        "tn": 83,
         "unknown": 0,
         "precision": {
           "estimate": 0.2,
@@ -685,9 +685,9 @@
         },
         "f1": 0.125,
         "prevalence": {
-          "estimate": 0.11458333333333333,
-          "low": 0.03893900863735833,
-          "high": 0.292459094709256
+          "estimate": 0.11224489795918367,
+          "low": 0.038034133777808996,
+          "high": 0.28791525648100474
         }
       },
       "graded": null,
@@ -700,8 +700,8 @@
   "transcripts_missing": 0,
   "transcripts_unreadable": 0,
   "label_sources": {
-    "gold:agreed": 168,
-    "gold:adjudicated": 16
+    "gold:agreed": 165,
+    "gold:adjudicated": 19
   },
   "notes": [
     "Failures come from only 11 tasks; intervals from few tasks are rough.",

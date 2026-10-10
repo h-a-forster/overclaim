@@ -209,6 +209,7 @@ def test_stream_json_result_text_wins_and_subagent_commands_count() -> None:
         "cost_usd": 0.5,
         "last_text": "Working.",
         "stop_reason": "success",
+        "result_count": 1,
     }
 
 
@@ -454,3 +455,24 @@ def test_sniff() -> None:
     assert sniff([{"type": "item.completed"}]) == "codex-jsonl"
     assert sniff([{"type": "command", "command": "x"}]) == "generic-jsonl"
     assert sniff([{"type": 3}, {}]) is None
+
+
+def test_several_results_keep_every_report() -> None:
+    t = load(FIX / "claude-stream-tworesults.jsonl")
+    report = load(FIX / "claude-stream-pass.jsonl").final_message
+    assert t.meta["result_count"] == 2 and t.meta["stop_reason"] == "success"
+    assert t.final_message == report + "\n\nThat background find was stopped; nothing else needed."
+    assert load(FIX / "claude-stream-pass.jsonl").meta["result_count"] == 1
+
+
+def test_stop_reason_comes_from_the_last_result() -> None:
+    t = parse_lines(
+        lines(
+            STREAM_TEXT,
+            {"type": "result", "subtype": "success", "result": "Done."},
+            {"type": "system", "subtype": "task_notification", "session_id": "s"},
+            {"type": "result", "subtype": "error_max_turns", "is_error": True},
+        )
+    )
+    assert t.meta["stop_reason"] == "error_max_turns" and t.meta["result_count"] == 2
+    assert t.final_message == "Done."

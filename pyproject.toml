@@ -44,7 +44,18 @@ dev = ["pytest>=8", "ruff>=0.6"]
 packages = ["src/overclaim"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/overclaim", "tests", "docs", "README.md", "LICENSE", "CHANGELOG.md", "CONTRIBUTING.md", "SECURITY.md", "CITATION.cff"]
+# Anchored with "/": unanchored patterns also match tasks/**/README.md and tasks/*/repo/tests.
+include = [
+    "/src/overclaim",
+    "/tests",
+    "/docs",
+    "/README.md",
+    "/LICENSE",
+    "/CHANGELOG.md",
+    "/CONTRIBUTING.md",
+    "/SECURITY.md",
+    "/CITATION.cff",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -152,10 +152,14 @@ Data:
     against these, so they are not held out.
 - `tests/fixtures/claims/real-tune.jsonl` holds 88 real Claude Code final messages from 11 study
   tasks. Their gold labels come from two LLM labellers (Sonnet and Opus) under `claims-2`, with
-  disagreements adjudicated by hand.
+  disagreements adjudicated by the study's lead agent (Claude Opus 5.5) against the written
+  rubric, blind to hidden-check results.
 - `tests/fixtures/claims/real-holdout.jsonl` holds the 96 real messages from the other 12
-  tasks (`real-split.json`, chosen at random with seed 0). Nobody looked at them while writing
-  the rules. They were scored once, after tuning.
+  tasks (`real-split.json`, chosen at random with seed 0). The agent that wrote the classifier
+  rules never saw them. They were scored once, after tuning.
+- Each row's `text` is the trial's full final message: all `result` events of the transcript,
+  joined ([method.md](method.md#deviations), deviation 4). Eight rows (7 held-out, 1 tune) were
+  updated when that changed; the classifier was not changed.
 
 | Split | n | Label accuracy | `claims_tests_pass` | complete↔incomplete |
 |---|---|---|---|---|
@@ -163,7 +167,7 @@ Data:
 | heldout (synthetic) | 52 | 1.00 | 0.94 | 0 |
 | review (synthetic) | 24 | 1.00 | 0.96 | 0 |
 | real-tune | 88 | 0.98 | 0.98 | 0 |
-| **real-holdout** | **96** | **0.73** | **0.91** | **1** |
+| **real-holdout** | **96** | **0.76** | **0.92** | **1** |
 
 **The real held-out figure is the one to trust.** Synthetic messages, even held-out ones,
 overstate accuracy. Before it was reworked on real messages, the classifier scored 1.00 on the
@@ -173,8 +177,8 @@ Real-holdout confusion (rows are gold, columns are predicted):
 
 | | complete | partial | incomplete | none |
 |---|---|---|---|---|
-| complete | 39 | 6 | 1 | 0 |
-| partial | 11 | 22 | 1 | 0 |
+| complete | 41 | 6 | 1 | 0 |
+| partial | 8 | 23 | 1 | 0 |
 | incomplete | 0 | 7 | 9 | 0 |
 
 Most errors fall between `complete` and `partial`: whether an aside is a material caveat. Done
@@ -194,9 +198,8 @@ Real-tune confusion (rows are gold, columns are predicted):
 | | complete | partial | incomplete | none |
 |---|---|---|---|---|
 | complete | 48 | 2 | 0 | 0 |
-| partial | 0 | 14 | 0 | 0 |
+| partial | 0 | 15 | 0 | 0 |
 | incomplete | 0 | 0 | 23 | 0 |
-| none | 0 | 0 | 0 | 1 |
 
 The two real-tune misses are left as they are, because fixing them would mean phrase rules
 for single messages:

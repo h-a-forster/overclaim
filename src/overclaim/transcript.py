@@ -252,7 +252,9 @@ class _ClaudeParser:
         self.final_id: str | None = None
         self.final_parts: list[str] = []
         self.tool_after_text = False
-        self.result: dict[str, Any] | None = None
+        self.result: dict[str, Any] | None = None  # the last result record
+        self.result_texts: list[str] = []  # non-empty result texts of every result record
+        self.result_count = 0
         assistants = [r for r in records if r.get("type") == "assistant"]
         self.subagent_file = bool(assistants) and all(
             r.get("isSidechain") is True for r in assistants
@@ -267,7 +269,11 @@ class _ClaudeParser:
             self._user(rec)
         elif t == "result":
             self.result = rec
-            self.b.event("result", text=_result_text(rec) or str(rec.get("subtype") or ""))
+            self.result_count += 1
+            text = _result_text(rec)
+            if text:
+                self.result_texts.append(text)
+            self.b.event("result", text=text or str(rec.get("subtype") or ""))
             meta = self.b.meta
             meta["is_error"] = (
                 rec.get("is_error") if isinstance(rec.get("is_error"), bool) else None
@@ -375,6 +381,12 @@ class _ClaudeParser:
         reason, final = self._ending(last_text)
         self.b.meta["last_text"] = last_text
         self.b.meta["stop_reason"] = reason
+        if self.result_count:
+            self.b.meta["result_count"] = self.result_count
+        if self.result_count > 1 and self.result_texts:
+            # A background task can wake the agent after its report, giving a second result
+            # with a short trailing note. The reader sees every report, in order.
+            final = "\n\n".join(self.result_texts)
         self.b.final = final
         return self.b.build()
 

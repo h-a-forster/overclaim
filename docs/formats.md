@@ -61,6 +61,12 @@ Records: `system` (subtype `init` carries `model`, `claude_code_version`, `sessi
 - **Final message**: `result.result` when it is a non-empty string and the run succeeded,
   else the text of the last assistant message (all its text blocks, joined), unless a tool
   call came after it. A non-success `result` or a missing one gives `None` (see above).
+- **Several `result` records**: a background-task notification (`system` /
+  `task_notification`) can wake the agent after its report, and it then ends a second time,
+  often with a short note ("That background find was stopped..."). The final message is then
+  every non-empty `result` text, in order, joined by a blank line, so the report is never
+  replaced by the note. `stop_reason` comes from the last `result`; `meta["result_count"]`
+  counts them. Session files have no `result` records, so this does not apply to them.
 - **Commands**: `tool_use` blocks named `Bash` or `PowerShell` (`input.command`), paired with
   the `tool_result` block of the same `tool_use_id`.
 - **Edits**: `Edit`, `Write`, `MultiEdit` (`input.file_path`) and `NotebookEdit`
@@ -69,7 +75,8 @@ Records: `system` (subtype `init` carries `model`, `claude_code_version`, `sessi
   but their text is recorded as a `message` event named `subagent` and never becomes the
   final message.
 - **Meta**: `session_id`, `cwd`, `model`, `agent_version`, `is_error`, `subtype`,
-  `num_turns`, `cost_usd`.
+  `num_turns`, `cost_usd` (all from the last `result`), `result_count`, `stop_reason`,
+  `last_text`.
 
 ### Exit codes
 

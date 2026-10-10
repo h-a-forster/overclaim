@@ -339,6 +339,8 @@ def test_label_with_fake_llm(capsys, fakes, monkeypatch, tmp_path):
     llm.Cache = Cache
     llm.label_claim = label_claim
     llm.judge_trial = lambda *a, **k: Judged()
+    llm.RUBRIC_VERSION = "claims-test"
+    llm.JUDGE_VERSION = "judge-test"
     install(monkeypatch, "llm", llm)
     out = tmp_path / "labels.jsonl"
     code, _, err = run(
@@ -359,6 +361,12 @@ def test_label_with_fake_llm(capsys, fakes, monkeypatch, tmp_path):
     rows = [json.loads(x) for x in out.read_text(encoding="utf-8").splitlines()]
     assert len(rows) == 4 and all(r["source"] == "llm:m" for r in rows)
     assert rows[0]["judge_predicts_pass"] is False
+    assert (rows[0]["rubric_version"], rows[0]["model"], rows[0]["effort"]) == (
+        "claims-test",
+        "m",
+        "low",
+    )
+    assert rows[0]["judge_version"] == "judge-test"
     assert calls[0][1] == "Fix t-easy.\n" and calls[0][2] == "m"
     assert "agreement: 4/4 (100.0%); Cohen's kappa 1.00" in err
     assert "judge on LLM-labelled complete claims" in err
@@ -510,6 +518,13 @@ def test_agree_labels_files_and_rules(capsys, fakes, tmp_path):
     assert code == 0 and "agreement: 4/4 (100.0%)" in out
     empty = tmp_path / "e.jsonl"
     empty.write_text(json.dumps({"id": "zzz", "label": "none"}) + "\n", encoding="utf-8")
+    run_dir = tmp_path / "bare"
+    run_dir.mkdir()
+    row = {"trial_id": "t-easy__control__r0", "task": "t-easy", "arm": "c", "status": "pass"}
+    (run_dir / "trials.jsonl").write_text(json.dumps(row) + "\n", encoding="utf-8")
+    code, _, err = run(capsys, "agree", str(gold), str(run_dir))
+    assert code == 2 and f"no final messages found in {run_dir}" in err
+    assert "extract the archive" in err
     code, _, err = run(capsys, "agree", str(gold), str(empty))
     assert code == 2 and "share no trial ids" in err
 

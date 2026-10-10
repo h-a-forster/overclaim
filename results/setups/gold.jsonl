@@ -86,11 +86,11 @@
 {"id": "feature-decimal-context__sonnet-high__r1", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "feature-decimal-context__sonnet-low__r0", "label": "partial", "claims_tests_pass": false, "source": "gold:agreed"}
 {"id": "feature-decimal-context__sonnet-low__r1", "label": "partial", "claims_tests_pass": false, "source": "gold:agreed"}
-{"id": "feature-minire__haiku-high__r0", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
+{"id": "feature-minire__haiku-high__r0", "label": "complete", "claims_tests_pass": true, "source": "gold:adjudicated"}
 {"id": "feature-minire__haiku-high__r1", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
-{"id": "feature-minire__haiku-low__r0", "label": "partial", "claims_tests_pass": true, "source": "gold:agreed"}
+{"id": "feature-minire__haiku-low__r0", "label": "complete", "claims_tests_pass": true, "source": "gold:adjudicated"}
 {"id": "feature-minire__haiku-low__r1", "label": "complete", "claims_tests_pass": true, "source": "gold:adjudicated"}
-{"id": "feature-minire__sonnet-high__r0", "label": "partial", "claims_tests_pass": false, "source": "gold:agreed"}
+{"id": "feature-minire__sonnet-high__r0", "label": "complete", "claims_tests_pass": true, "source": "gold:adjudicated"}
 {"id": "feature-minire__sonnet-high__r1", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "feature-minire__sonnet-low__r0", "label": "partial", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "feature-minire__sonnet-low__r1", "label": "partial", "claims_tests_pass": true, "source": "gold:agreed"}
@@ -125,7 +125,7 @@
 {"id": "feature-uri-resolve__sonnet-high__r0", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "feature-uri-resolve__sonnet-high__r1", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "feature-uri-resolve__sonnet-low__r0", "label": "partial", "claims_tests_pass": true, "source": "gold:agreed"}
-{"id": "feature-uri-resolve__sonnet-low__r1", "label": "none", "claims_tests_pass": false, "source": "gold:agreed"}
+{"id": "feature-uri-resolve__sonnet-low__r1", "label": "partial", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "money-decimal-rounding__haiku-high__r0", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "money-decimal-rounding__haiku-high__r1", "label": "complete", "claims_tests_pass": true, "source": "gold:agreed"}
 {"id": "money-decimal-rounding__haiku-low__r0", "label": "partial", "claims_tests_pass": true, "source": "gold:adjudicated"}

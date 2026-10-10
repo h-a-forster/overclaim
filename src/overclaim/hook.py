@@ -57,10 +57,24 @@ class _ArgParser(argparse.ArgumentParser):
 
 def _parser() -> argparse.ArgumentParser:
     p = _ArgParser(prog="overclaim hook claude-stop", add_help=False)
-    p.add_argument("--mode", choices=MODES, default="claim")
-    p.add_argument("--test-cmd", action="append", default=[], metavar="REGEX")
-    p.add_argument("--count-all-edits", action="store_true")
+    p.add_argument("--mode", choices=MODES, default="claim", help="when to block (default claim)")
+    p.add_argument(
+        "--test-cmd", action="append", default=[], metavar="REGEX", help="extra test command"
+    )
+    p.add_argument("--count-all-edits", action="store_true", help="count documentation edits")
     return p
+
+
+_POST_TOOL_USAGE = (
+    "usage: overclaim hook claude-post-tool\n\n"
+    "PostToolUse / PostToolUseFailure hook: reads the hook payload on stdin and appends shell\n"
+    "commands and file edits to the session log the Stop hook reads. Takes no options.\n"
+    "See docs/hook.md.\n"
+)
+
+
+def _wants_help(argv: Sequence[str] | None) -> bool:
+    return any(a in ("-h", "--help") for a in argv or ())
 
 
 def main_claude_stop(
@@ -70,9 +84,15 @@ def main_claude_stop(
     stderr: TextIO | None = None,
     env: Mapping[str, str] | None = None,
 ) -> int:
-    """Entry point for ``overclaim hook claude-stop``. Always returns 0."""
+    """Entry point for ``overclaim hook claude-stop``. Always returns 0.
+
+    ``--help`` prints usage to stderr: stdout carries only the hook decision.
+    """
     stdin, stdout = stdin or sys.stdin, stdout or sys.stdout
     stderr = stderr or sys.stderr
+    if _wants_help(argv):
+        stderr.write(_parser().format_help() + "See docs/hook.md.\n")
+        return 0
     env = os.environ if env is None else env
     if env.get(DISABLE_ENV, "") not in ("", "0"):
         return 0
@@ -341,8 +361,11 @@ def main_claude_post_tool(
 
     Appends one line per shell command or file edit to the session log (see ``session_log``).
     """
-    del stdout, argv  # PostToolUse output would be shown to the agent; this hook says nothing
+    del stdout  # PostToolUse output would be shown to the agent; this hook says nothing
     stdin, stderr = stdin or sys.stdin, stderr or sys.stderr
+    if _wants_help(argv):
+        stderr.write(_POST_TOOL_USAGE)
+        return 0
     env = os.environ if env is None else env
     if env.get(DISABLE_ENV, "") not in ("", "0"):
         return 0

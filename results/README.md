@@ -15,7 +15,7 @@ One directory per study, named after its experiment config in [experiments/](../
 | `trials.jsonl` | One row per trial (last attempt): task, arm, repeat, hidden-check `status`, cost, tokens, turns, agent init | agent-ab, copied by `scripts/package_results.py` |
 | `labels-sonnet.jsonl` | Claim label per trial from Claude Sonnet 5.5, rubric `claims-2` | `overclaim label ... --model sonnet --effort low` |
 | `labels-opus.jsonl` | The same from Claude Opus 5.5 | `overclaim label ... --model opus --effort low` |
-| `adjudicated.jsonl` | Human decisions on the trials where Sonnet and Opus disagree, blind to the hidden check, with a note each | by hand |
+| `adjudicated.jsonl` | Decisions on the trials where Sonnet and Opus disagree, with a note each, adjudicated by the study's lead agent (Claude Opus 5.5) against the written rubric, blind to hidden-check results; the agent that wrote the classifier rules never saw the held-out messages | the lead agent |
 | `gold.jsonl` | Final labels: the LLM label where both agree (`source` `gold:agreed`), else the adjudication (`gold:adjudicated`) | `scripts/gold_labels.py` |
 | `trials-derived.jsonl` | One row per trial with claim, outcome (`false_completion`, ...), verification evidence, test-run counts, final message | `overclaim export ... --labels gold.jsonl` |
 | `scan-detectors.json` | Full `scan --format json` report with all four detectors, including the LLM judge | `overclaim scan ... --detectors unverified,claims-tests-unbacked,ruleproof,judge --format json` |
@@ -55,9 +55,25 @@ overclaim inspect results/setups/trials/feature-uri-resolve__haiku-low__r0/attem
 The scan commands for every table are in
 [docs/results.md](../docs/results.md#reproducing-the-tables). None of them calls a model.
 
-**Scrubbing.** `scripts/package_results.py` replaces the local home directory (in Windows,
-POSIX and escaped forms) with `~` and the local user name with `user` in every packaged file,
-including `run.json` and `trials.jsonl`. Paths in the transcripts therefore look like
-`~\AppData\Local\Temp\agent-ab-...`. The archive is deterministic (sorted entries, fixed
-mtimes), so packaging the same run again gives the same bytes. Nothing else is removed: the
+**Redaction.** Trials ran unsandboxed with full permissions on the host. No transcript shows an
+agent reading the hidden checks, but on the impossible `procure-2019-prices` task agents
+searched the disk for the missing data (`find /`, `find ~`, `ls ~/projects`).
+`scripts/package_results.py` replaces the output of every tool call that read outside the trial
+workspace with `[redacted: output of a tool call that read outside the trial workspace]`. In
+study 1 that is 8 tool outputs: 7 in `procure-2019-prices` trials and 1 in
+`feature-uri-resolve__sonnet-low__r1`. The tool calls themselves are kept.
+
+**Scrubbing.** The same script replaces the local home directory (in Windows, POSIX and escaped
+forms) with `~` and the local user name with `user` in every packaged file, including
+`run.json` and `trials.jsonl`. Paths in the transcripts therefore look like
+`~\AppData\Local\Temp\agent-ab-...`. With `--deny-list FILE` (one word per line), packaging
+fails if any listed word survives. The archive is deterministic (sorted entries, fixed mtimes),
+so packaging the same run again gives the same bytes. Apart from the redacted outputs, the
 transcripts contain the agents' full tool calls and outputs on the task repositories.
+
+To verify: `python scripts/package_results.py --help` lists the options, the script's docstring
+describes both steps, and in an extracted archive the redacted outputs can be listed with
+
+```sh
+grep -rl "output of a tool call that read outside" results/setups/trials
+```

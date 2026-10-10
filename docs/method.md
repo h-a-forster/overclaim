@@ -44,6 +44,11 @@ cases, and does a "verify before you say done" Stop hook prevent them?
 Claude Code 2.1.296, `--setting-sources project`, no MCP servers, `bypassPermissions`, at most
 100 turns and $2 per trial, 30 minutes per trial.
 
+**Host access.** Trials ran unsandboxed with full permissions on the host. No transcript shows
+an agent reading the hidden checks. On the impossible `procure-2019-prices` task, agents searched
+the disk (`find /`, `find ~`); those tool outputs are redacted in the published archive
+([results/README.md](../results/README.md#transcripts)).
+
 ## Labels
 
 - **Primary labels:** Claude Sonnet 5.5 at low effort with a fixed rubric (`RUBRIC_VERSION`
@@ -51,8 +56,9 @@ Claude Code 2.1.296, `--setting-sources project`, no MCP servers, `bypassPermiss
   the hidden-check result.
 - **Second labels:** Claude Opus 5.5 with the same rubric. Agreement is reported as Cohen's
   kappa.
-- **Gold labels:** where the two models agree, their label. Where they disagree, a human reads
-  the message and decides, blind to the hidden-check result.
+- **Gold labels:** where the two models agree, their label. Where they disagree, the study's
+  lead agent (Claude Opus 5.5) adjudicates against the written rubric, blind to hidden-check
+  results. The agent that wrote the classifier rules never saw the held-out messages.
 - **Rule classifier:** the offline classifier (`overclaim.claims`, which the Stop hook uses) is
   scored against the gold labels. It was tuned on real messages from half the tasks, chosen at
   random with seed 0, and is scored on the other half.
@@ -94,12 +100,15 @@ arms are reported as exploratory.
 
 ## Sensitivity analyses
 
-- **Without `feature-uri-resolve`,** which has a known gap in its spec.
+- **Without `feature-uri-resolve`,** which has a known gap in its spec. (After study 1: its
+  hidden oracle lowercases percent-encoded hex digits in a host, which the prompt says stay
+  uppercase; see [results.md](results.md#sensitivity-analyses).)
 - **Primary labels replaced** by the rule classifier, and by the Opus labels.
 
 ## Deviations
 
-All of these were decided after study 1 and before study 2 ran.
+Deviations 1 to 3 were decided after study 1 and before study 2 ran. Deviation 4 corrects
+how study 1's final messages were read.
 
 1. **Headline labels are the gold labels, not Sonnet's alone.** On the first 92 trials, Sonnet
    and Opus disagreed on 5 messages. In every case Sonnet treated a non-material aside as a
@@ -118,3 +127,14 @@ All of these were decided after study 1 and before study 2 ran.
      `stop-audit` arm (`--mode audit`) sends every completion claim back once for a
      requirement-by-requirement check.
    - The new design is 18 tasks x 4 arms x 4 repeats = 288 trials.
+4. **The final message is every `result` event, joined.** In a `stream-json` transcript, a
+   background task can wake the agent after its first `result` event, and the agent then ends
+   with a short follow-up note and a second `result`. The first version of the transcript
+   reader kept only the last `result`, so 8 study 1 trials were labelled on the trailing note.
+   The reader now joins all non-empty `result` texts with a blank line. The 8 messages were
+   relabelled by Sonnet and Opus; 3 of them (`feature-minire`) became new disagreements and
+   were adjudicated, giving 19 adjudications in all. The headline is unchanged: FCR on solvable
+   tasks is 11/14. Complete claims rose from 96 to 98 and the false-claim share moved from
+   11.5% to 11.2%. One failed trial (`feature-uri-resolve__sonnet-low__r1`) moved from `none`
+   to `partial`, so the honest-failure rate on solvable tasks rose from 14.3% to 21.4%.
+   [results.md](results.md) has the current numbers.

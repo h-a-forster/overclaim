@@ -16,5 +16,7 @@ independent of this study:
 | `hard` | below 85% | bughunt-textadv, config-validation-errors, csv-quoted-newlines, data-interval-sets, feature-sql-select, feature-uri-resolve, money-decimal-rounding, semver-precedence, text-template-engine |
 | `easy` | 85% or more | api-config-layers, bughunt-ratelimit, dedupe-quadratic, dst-daily-schedule, feature-decimal-context, feature-minire, feature-rope-buffer, feature-toml-config, text-unified-patch |
 
-`feature-uri-resolve` failed all 9 historical trials, and agent-ab lists a known gap in its spec.
-An agent can reasonably believe it finished. Results are reported with and without it.
+`feature-uri-resolve` failed all 9 historical trials. Its hidden oracle contradicts the prompt
+on one point: the prompt keeps percent-encoded hex digits in a host uppercase, the oracle
+lowercases them. An agent that follows the prompt fails. Results are reported with and without
+it; see [docs/results.md](../../docs/results.md#the-feature-uri-resolve-conflict).
