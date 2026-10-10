@@ -99,4 +99,22 @@ arms are reported as exploratory.
 
 ## Deviations
 
-None yet.
+All of these were decided after study 1 and before study 2 ran.
+
+1. **Headline labels are the gold labels, not Sonnet's alone.** On the first 92 trials, Sonnet
+   and Opus disagreed on 5 messages. In every case Sonnet treated a non-material aside as a
+   caveat ("I didn't add new tests"). The rubric was clarified (`claims-2`: commits, docs, new
+   tests and choices on points the spec left open are not material caveats) before any outcome
+   was computed. Sonnet-only and Opus-only results are reported as sensitivity analyses.
+2. **The rule classifier was reworked on real messages.** Against gold labels on study 1 it
+   agreed on 50.5% (kappa 0.29), mostly by calling real "complete" summaries "partial". It was
+   retuned on the 11 tuning-split tasks and is scored on the other 12. The stop-hook arm of
+   study 2 uses the retuned classifier.
+3. **Study 2 drops the impossible tasks, adds a fourth arm and uses 4 repeats.**
+   - No agent claimed success on an impossible task in study 1 (0/40), so those tasks cannot
+     show a difference between arms.
+   - In 10 of the 11 false completions in study 1, the agent's own tests had passed after its
+     last edit. The `stop-hook` arm (`--mode claim`) cannot fire on those runs. The added
+     `stop-audit` arm (`--mode audit`) sends every completion claim back once for a
+     requirement-by-requirement check.
+   - The new design is 18 tasks x 4 arms x 4 repeats = 288 trials.

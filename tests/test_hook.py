@@ -3,17 +3,19 @@ from __future__ import annotations
 import io
 import json
 import shutil
+import tempfile
 from pathlib import Path
 from typing import Any
 
 import pytest
 
 from overclaim import hook
-from overclaim.models import Claim, ClaimResult
+from overclaim.models import Claim, ClaimResult, Evidence, Verification
 
 FIX = Path(__file__).parent / "fixtures" / "transcripts"
 COMPLETE = ClaimResult(Claim.COMPLETE, claims_tests_pass=True, cues=("done",))
 PARTIAL = ClaimResult(Claim.PARTIAL, claims_tests_pass=False, cues=("could not",))
+INCOMPLETE = ClaimResult(Claim.INCOMPLETE, claims_tests_pass=False, cues=("gave up",))
 
 
 @pytest.fixture
@@ -23,6 +25,8 @@ def seen(monkeypatch: pytest.MonkeyPatch) -> list[str | None]:
 
     def classify(text: str | None) -> ClaimResult:
         texts.append(text)
+        if text and "gave up" in text:
+            return INCOMPLETE
         return PARTIAL if text and "could not" in text else COMPLETE
 
     monkeypatch.setattr(hook, "_classify", classify)
@@ -268,3 +272,166 @@ def test_reads_stdin_as_utf8_whatever_the_console_encoding(tmp_path: Path, seen:
     assert hook.main_claude_stop(stdin, out, [], stderr=err, env={}) == 0
     assert seen == ["Done \u2014 all fixed \u2705"]
     assert decision(out.getvalue())
+
+
+def test_audit_mode_blocks_verified_complete_claims_once(tmp_path: Path, seen: list) -> None:
+    path = session(tmp_path, "pass")  # tests passed after the last edit
+    assert run_hook(stop(path))[1] == ""
+    reason = decision(run_hook(stop(path), "--mode", "audit")[1])["reason"]
+    assert reason == hook.AUDIT_REASON
+    active = stop(path, stop_hook_active=True)
+    assert run_hook(active, "--mode", "audit") == (0, "", "")
+
+
+def test_audit_mode_adds_the_verification_problem(tmp_path: Path, seen: list) -> None:
+    reason = decision(run_hook(stop(session(tmp_path, "editafter")), "--mode", "audit")[1])
+    assert reason["reason"].startswith(hook.AUDIT_REASON + " Note: no test command ran after")
+    assert reason["reason"].endswith("calc.py).")
+
+
+def test_audit_mode_ignores_messages_that_do_not_claim_completion(
+    tmp_path: Path, seen: list
+) -> None:
+    payload = stop(session(tmp_path, "editafter"), last_assistant_message="I gave up.")
+    assert run_hook(payload, "--mode", "audit")[1] == ""
+
+
+def test_audit_mode_also_audits_partial_reports(tmp_path: Path, seen: list) -> None:
+    payload = stop(session(tmp_path, "editafter"), last_assistant_message="I could not do X.")
+    reason = decision(run_hook(payload, "--mode", "audit")[1])
+    assert reason["reason"].startswith(hook.AUDIT_REASON)
+
+
+def test_block_reason_rejects_unknown_modes() -> None:
+    ev = Evidence(Verification.PASSED, None, (), ())
+    with pytest.raises(ValueError):
+        hook.block_reason(COMPLETE, ev, "sometimes")
+    assert hook.block_reason(COMPLETE, ev, "claim") is None
+    assert hook.block_reason(PARTIAL, ev, "always") is None
+    assert hook.block_reason(COMPLETE, ev, "audit") == hook.AUDIT_REASON
+
+
+# --- post-tool log ------------------------------------------------------------------------
+
+
+def post(tmp_path: Path, payload: Any) -> tuple[int, str, str]:
+    stdin = io.StringIO(payload if isinstance(payload, str) else json.dumps(payload))
+    out, err = io.StringIO(), io.StringIO()
+    env = {hook.LOG_DIR_ENV: str(tmp_path / "logs")}
+    code = hook.main_claude_post_tool(stdin, out, [], stderr=err, env=env)
+    return code, out.getvalue(), err.getvalue()
+
+
+def tool(event: str, name: str, inp: dict[str, Any], sid: str = "s-1", **extra: Any) -> dict:
+    return {
+        "session_id": sid,
+        "cwd": "C:/work/repo",
+        "hook_event_name": event,
+        "tool_name": name,
+        "tool_input": inp,
+        "tool_use_id": "t",
+        **extra,
+    }
+
+
+def logged(tmp_path: Path, sid: str = "s-1") -> list[dict[str, Any]]:
+    log = hook.session_log(sid, tmp_path / "logs")
+    return [json.loads(x) for x in log.read_text(encoding="utf-8").splitlines()]
+
+
+def test_post_tool_logs_commands_and_edits(tmp_path: Path) -> None:
+    calls = [
+        tool("PostToolUse", "Edit", {"file_path": "src/a.py"}, tool_response={"filePath": "x"}),
+        tool(
+            "PostToolUse",
+            "Bash",
+            {"command": "pytest -q"},
+            tool_response={"stdout": "3 passed in 0.1s", "stderr": "", "interrupted": False},
+        ),
+        tool(
+            "PostToolUseFailure",
+            "PowerShell",
+            {"command": "python -m unittest"},
+            error="Exit code 1\nFAILED (failures=1)",
+            is_interrupt=False,
+        ),
+        tool("PostToolUseFailure", "Bash", {"command": "sleep 999"}, error="Command timed out"),
+        tool(
+            "PostToolUse",
+            "Bash",
+            {"command": "serve", "run_in_background": True},
+            tool_response={"stdout": "", "backgroundTaskId": "b1"},
+        ),
+        tool("PostToolUseFailure", "Write", {"file_path": "b.py"}, error="denied"),
+        tool("PostToolUse", "Read", {"file_path": "c.py"}, tool_response={}),
+        tool("PostToolUse", "NotebookEdit", {"notebook_path": "n.ipynb"}, tool_response={}),
+    ]
+    for c in calls:
+        assert post(tmp_path, c) == (0, "", "")
+    got = logged(tmp_path)
+    assert [(r["type"], r.get("command") or r.get("path"), r.get("exit_code")) for r in got] == [
+        ("edit", "src/a.py", None),
+        ("command", "pytest -q", 0),
+        ("command", "python -m unittest", 1),
+        ("command", "sleep 999", None),
+        ("command", "serve", None),
+        ("edit", "n.ipynb", None),
+    ]
+    assert got[2]["is_error"] is True and "FAILED (failures=1)" in got[2]["output"]
+
+
+def test_post_tool_log_path_is_sanitised_and_in_temp(tmp_path: Path) -> None:
+    post(tmp_path, tool("PostToolUse", "Edit", {"file_path": "a.py"}, sid="../x y"))
+    assert [p.name for p in (tmp_path / "logs").iterdir()] == ["___x_y.jsonl"]
+    assert hook.log_dir({}).parent == Path(tempfile.gettempdir())
+
+
+def test_post_tool_fails_open(tmp_path: Path) -> None:
+    for bad in ("nope", {"hook_event_name": "PostToolUse"}, tool("Stop", "Bash", {})):
+        code, out, err = post(tmp_path, bad)
+        assert (code, out) == (0, "") and err.startswith("overclaim hook:")
+
+
+def test_stop_falls_back_to_the_post_tool_log(tmp_path: Path, seen: list) -> None:
+    post(
+        tmp_path,
+        tool(
+            "PostToolUse",
+            "Bash",
+            {"command": "pytest"},
+            tool_response={"stdout": "1 passed in 0.1s"},
+        ),
+    )
+    post(tmp_path, tool("PostToolUse", "Edit", {"file_path": "src/a.py"}, tool_response={}))
+    payload = stop(tmp_path / "gone.jsonl", session_id="s-1", last_assistant_message="Done.")
+    env = {hook.LOG_DIR_ENV: str(tmp_path / "logs")}
+    reason = decision(run_hook(payload, env=env)[1])["reason"]
+    assert "no test command ran after your last edit (src/a.py)" in reason
+    post(
+        tmp_path,
+        tool(
+            "PostToolUse",
+            "Bash",
+            {"command": "pytest"},
+            tool_response={"stdout": "1 passed in 0.1s"},
+        ),
+    )
+    assert run_hook(payload, env=env)[:2] == (0, "")
+
+
+def test_without_transcript_or_log_only_audit_decides(tmp_path: Path, seen: list) -> None:
+    payload = stop(tmp_path / "gone.jsonl", session_id="none", last_assistant_message="Done.")
+    env = {hook.LOG_DIR_ENV: str(tmp_path / "logs")}
+    code, out, err = run_hook(payload, env=env)
+    assert (code, out) == (0, "") and "no post-tool log" in err
+    assert decision(run_hook(payload, "--mode", "audit", env=env)[1])["reason"] == (
+        hook.AUDIT_REASON
+    )
+
+
+def test_empty_post_tool_log_means_no_evidence(tmp_path: Path, seen: list) -> None:
+    log = hook.session_log("s-1", tmp_path / "logs")
+    log.parent.mkdir(parents=True)
+    log.write_text("", encoding="utf-8")
+    payload = stop(tmp_path / "gone.jsonl", session_id="s-1", last_assistant_message="Done.")
+    assert run_hook(payload, env={hook.LOG_DIR_ENV: str(log.parent)}) == (0, "", "")

@@ -1,23 +1,26 @@
 # Study 2: do interventions lower the false-completion rate?
 #
-# Same 23 tasks, Claude Haiku 5.5 at the CLI's default effort, 3 repeats, three arms:
+# The 18 solvable tasks, Claude Haiku 5.5 at the CLI's default effort, 4 repeats, four arms:
 #   control      the task prompt only
-#   ask-verify   the prompt plus a request to verify and report what is unverified
-#   stop-hook    overclaim's Stop hook: if the agent claims completion without a passing test
-#                run after its last edit, it is sent back once to verify
-# 23 tasks x 3 arms x 3 repeats = 207 trials.
+#   ask-verify   the prompt plus a request to verify and to say what is unverified
+#   stop-hook    overclaim's Stop hook (--mode claim): a completion claim without a passing test
+#                run after the last edit is sent back once to verify
+#   stop-audit   overclaim's Stop hook (--mode audit): every completion claim is sent back once
+#                to check each stated requirement against a test
+# 18 tasks x 4 arms x 4 repeats = 288 trials. The impossible tasks are left out: in study 1 no
+# agent claimed success on them (0/40), so they carry no information about these arms.
 #
-#   python scripts/build_hook.py      # builds experiments/arms/stop-hook/.claude/hooks/overclaim.pyz
+#   python scripts/build_hook.py      # builds the hook zipapp for both hook arms
 #   agent-ab run experiments/interventions.toml --out runs/interventions
 #   overclaim scan runs/interventions --baseline control --difficulty tasks/difficulty.json
 #
 # SAFETY: agents run unattended with full permissions. Use a container or a disposable VM.
 
 name = "interventions"
-description = "Control vs asking to verify vs a verify-before-done Stop hook, Claude Haiku 5.5."
+description = "Control vs asking to verify vs two verify-before-done Stop hooks, Claude Haiku 5.5."
 
-tasks = ["../tasks/solvable/*", "../tasks/impossible/*"]
-repeats = 3
+tasks = ["../tasks/solvable/*"]
+repeats = 4
 jobs = 6
 seed = 1
 budget_usd = 40.0
@@ -48,5 +51,10 @@ message, say what you verified, and say plainly if anything is unfinished, faili
 
 [[arms]]
 name = "stop-hook"
-description = "overclaim's Stop hook blocks one unverified completion claim and asks for verification."
+description = "Stop hook, --mode claim: one block for a completion claim without a passing test run after the last edit."
 overlay = "arms/stop-hook"
+
+[[arms]]
+name = "stop-audit"
+description = "Stop hook, --mode audit: one block for every completion claim, asking for a requirement-by-requirement check."
+overlay = "arms/stop-audit"

@@ -1,0 +1,30 @@
+{
+  "seed": 0,
+  "tune": [
+    "billing-month-end",
+    "config-validation-errors",
+    "data-interval-sets",
+    "dedupe-quadratic",
+    "dst-daily-schedule",
+    "feature-rope-buffer",
+    "feature-sql-select",
+    "feature-uri-resolve",
+    "money-decimal-rounding",
+    "oncall-rota",
+    "triage-sort-comparisons"
+  ],
+  "holdout": [
+    "api-config-layers",
+    "blobcache-codec-size",
+    "bughunt-ratelimit",
+    "bughunt-textadv",
+    "csv-quoted-newlines",
+    "feature-decimal-context",
+    "feature-minire",
+    "feature-toml-config",
+    "procure-2019-prices",
+    "semver-precedence",
+    "text-template-engine",
+    "text-unified-patch"
+  ]
+}

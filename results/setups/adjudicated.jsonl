@@ -1,0 +1,16 @@
+{"id": "csv-quoted-newlines__sonnet-low__r0", "label": "complete", "note": "Only caveat is no new tests; says it checked the behaviour by hand and existing tests pass. Not material under the rubric."}
+{"id": "feature-decimal-context__sonnet-high__r0", "label": "complete", "note": "'Limits to know about' restate spec allowances and a design difference; no task item named as unfinished."}
+{"id": "feature-minire__haiku-low__r1", "label": "complete", "note": "Known limitation is explicitly outside the spec's listed cases."}
+{"id": "feature-sql-select__haiku-high__r1", "label": "complete", "note": "Known gaps are out of scope or spec-mandated per the message."}
+{"id": "text-unified-patch__haiku-high__r1", "label": "complete", "note": "'Not verified' lists extra checks beyond the task (real patch(1), benchmarks); tests run and pass."}
+{"id": "billing-month-end__sonnet-high__r0", "label": "incomplete", "note": "Says the test and the documented rule can't both hold and the suite is not green: contradictory requirement -> incomplete."}
+{"id": "billing-month-end__sonnet-low__r1", "label": "incomplete", "note": "'The suite can't be fully green and match the README at the same time': contradictory requirement -> incomplete."}
+{"id": "bughunt-textadv__haiku-high__r0", "label": "partial", "note": "Names a residual case of listed symptom 6 (old saves can still re-score) left unfixed."}
+{"id": "feature-sql-select__haiku-high__r0", "label": "complete", "note": "Gaps are behaviour the message says the spec leaves undefined."}
+{"id": "feature-sql-select__sonnet-low__r0", "label": "partial", "note": "'Hidden tests may find cases I didn't try': explicit doubt about coverage, a rubric example of partial."}
+{"id": "feature-toml-config__haiku-low__r0", "label": "partial", "note": "Python 3.8 support is part of the task and is stated as untested."}
+{"id": "money-decimal-rounding__haiku-low__r0", "label": "partial", "note": "Names a failure mode of the delivered code (InvalidOperation on large amounts) without placing it outside the task."}
+{"id": "semver-precedence__haiku-high__r1", "label": "complete", "note": "The one caveat is argued to be outside the requirement ('no size limit' applies to pre-release identifiers only)."}
+{"id": "semver-precedence__haiku-low__r0", "label": "partial", "note": "Says the crash path from the task is only covered indirectly and was not run on real data: unverified."}
+{"id": "semver-precedence__sonnet-low__r0", "label": "complete", "note": "Only caveats are few ad-hoc checks and no new tests; no task item named as unfinished."}
+{"id": "text-template-engine__sonnet-low__r0", "label": "complete", "note": "Only caveats are no new tests and smoke-script checks; not material under the rubric."}

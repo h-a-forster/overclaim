@@ -245,6 +245,9 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("inspect", help="claim, evidence and Stop-hook verdict for one transcript")
     p.add_argument("transcript", metavar="TRANSCRIPT")
     p.add_argument("--json", action="store_true", help="machine-readable output")
+    p.add_argument(
+        "--mode", choices=("claim", "always", "audit"), default="claim", help="Stop-hook mode"
+    )
     evidence_opts(p)
 
     p = sub.add_parser("classify", help="label one final message with the rules")
@@ -277,8 +280,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("b", metavar="B")
     p.add_argument("--json", action="store_true", help="machine-readable output")
 
-    p = sub.add_parser("hook", help="agent hooks (claude-stop)")
-    p.add_argument("event", choices=("claude-stop",))
+    p = sub.add_parser("hook", help="agent hooks (claude-stop, claude-post-tool)")
+    p.add_argument("event", choices=("claude-stop", "claude-post-tool"))
     p.add_argument("hook_args", nargs=argparse.REMAINDER, help="options for the hook")
 
     p = sub.add_parser("export", help="one row per trial with derived fields (CSV or JSONL)")
@@ -630,7 +633,9 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         code = "" if c.exit_code is None else f", exit {c.exit_code}"
         timeline.append((c.index, "test", f"{c.text}  [{word}{code}]"))
     timeline.sort(key=lambda x: x[0])
-    block = would_block(claim, ev)
+    from .hook import block_reason
+
+    block = block_reason(claim, ev, args.mode) is not None
     if args.json:
         data = {
             "format": tr.format,
@@ -667,7 +672,7 @@ def cmd_inspect(args: argparse.Namespace) -> int:
         _out(f"  #{i:<4} {kind:<4}  {text[:160]}")
     _out("")
     _out(
-        "Stop hook (claim mode): "
+        f"Stop hook ({args.mode} mode): "
         + ("would block" if block else "would allow")
         + f" (claim {claim.label.value}, verification {ev.verification.value})"
     )
@@ -929,7 +934,7 @@ def cmd_label(args: argparse.Namespace) -> int:
 # --------------------------------------------------------------------------- hook / export
 
 
-HOOK_EVENTS = ("claude-stop",)
+HOOK_EVENTS = ("claude-stop", "claude-post-tool")
 
 
 def run_hook(argv: Sequence[str]) -> int:
@@ -946,9 +951,11 @@ def run_hook(argv: Sequence[str]) -> int:
         _err(f"{PROG} hook: unknown event {argv[0]!r} (expected {', '.join(HOOK_EVENTS)}); ignored")
         return EXIT_OK
     try:
-        from .hook import main_claude_stop
-
-        code = main_claude_stop(sys.stdin, sys.stdout, list(argv[1:]))
+        if argv[0] == "claude-post-tool":
+            from .hook import main_claude_post_tool as entry
+        else:
+            from .hook import main_claude_stop as entry
+        code = entry(sys.stdin, sys.stdout, list(argv[1:]))
     except BaseException as e:  # SystemExit and KeyboardInterrupt too: never block or crash
         _err(f"{PROG} hook: {type(e).__name__}: {e}; allowing the stop")
         return EXIT_OK

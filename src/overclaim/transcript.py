@@ -410,10 +410,12 @@ def _claude_result(call: _Call, background: bool, block: dict[str, Any], extra: 
         call.applied = is_error is not True  # "String to replace not found", denied, ...
         return
     call.output = _output(text)
-    call.exit_code = _claude_exit(text, is_error, extra, background)
+    call.exit_code = shell_exit_code(text, is_error, extra, background)
 
 
-def _claude_exit(text: str, is_error: bool | None, extra: object, background: bool) -> int | None:
+def shell_exit_code(
+    text: str, is_error: bool | None, extra: object, background: bool
+) -> int | None:
     """The exit code, only when the transcript makes it knowable.
 
     Claude Code (checked on 2.1.x) marks a non-zero exit with ``is_error: true`` and a first

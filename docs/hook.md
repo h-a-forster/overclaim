@@ -1,7 +1,14 @@
-# Claude Code Stop hook
+# Claude Code hooks
 
-`overclaim hook claude-stop` is a [Claude Code hook](https://code.claude.com/docs/en/hooks)
-for the `Stop` event. When the agent tries to end its turn while saying the task is done, and
+`overclaim` ships two [Claude Code hooks](https://code.claude.com/docs/en/hooks) that work
+together:
+
+- `overclaim hook claude-stop`, for the `Stop` event, makes the decision;
+- `overclaim hook claude-post-tool`, for `PostToolUse` and `PostToolUseFailure`, records the
+  agent's shell commands and file edits as they happen, so the Stop hook has evidence even
+  when there is no session transcript.
+
+`overclaim hook claude-stop` is the hook for the `Stop` event. When the agent tries to end its turn while saying the task is done, and
 its transcript shows no passing test run after its last edit, the hook blocks the stop once
 and tells the agent to verify, or to state plainly what it could not verify.
 
@@ -17,11 +24,27 @@ Install `overclaim` so that it is on `PATH`, for example:
 uv tool install git+https://github.com/h-a-forster/overclaim
 ```
 
-Then add the hook to `.claude/settings.json` (project) or `~/.claude/settings.json` (user):
+Then add the hooks to `.claude/settings.json` (project) or `~/.claude/settings.json` (user):
 
 ```json
 {
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {"type": "command", "command": "overclaim hook claude-post-tool", "timeout": 30}
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {"type": "command", "command": "overclaim hook claude-post-tool", "timeout": 30}
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -37,17 +60,26 @@ Then add the hook to `.claude/settings.json` (project) or `~/.claude/settings.js
 }
 ```
 
+The post-tool entries are optional when Claude Code keeps session transcripts (the
+default), and needed when it does not: `claude -p --no-session-persistence` (as agent-ab runs
+it) and many CI setups write no transcript, so `transcript_path` points to a file that does
+not exist.
+
 `Stop` takes no matcher. To also cover subagents, add the same entry under
 `SubagentStop`; the hook then reads the subagent's own transcript
 (`agent_transcript_path`) and final message.
 
 ## What it does
 
-1. Reads the hook input from stdin (as UTF-8, whatever the console code page). If `stop_hook_active` is `true` (the agent is already
-   continuing because a Stop hook blocked), it exits at once: the hook blocks at most once
-   per stop, so it cannot trap the agent in a loop.
+1. Reads the hook input from stdin (as UTF-8, whatever the console code page). If
+   `stop_hook_active` is `true` (the agent is already continuing because a Stop hook
+   blocked), it exits at once: the hook blocks at most once per stop, so it cannot trap the
+   agent in a loop.
 2. Parses the session transcript at `transcript_path` (Claude Code session JSONL), or
-   for `SubagentStop` the subagent's transcript at `agent_transcript_path`.
+   for `SubagentStop` the subagent's transcript at `agent_transcript_path`. When that file
+   does not exist, it reads the post-tool log for the session instead (see
+   [The post-tool log](#the-post-tool-log)). With neither, `claim` and `always` modes allow
+   the stop with a note on stderr, and `audit` mode decides from the final message alone.
 3. Takes the final message from `last_assistant_message`, falling back to the transcript.
 4. Classifies the message (complete / partial / incomplete / none) and assesses verification:
    - `passed`: the last test command after the last edit passed;
@@ -67,7 +99,8 @@ Then add the hook to `.claude/settings.json` (project) or `~/.claude/settings.js
    {"decision": "block", "reason": "You reported the task as done, but no test command ran after your last edit (src/parser.py). Run the tests now, fix what fails, then report exactly what passed and what you could not verify. If the project has no tests, say so plainly instead of claiming it works."}
    ```
 
-   Otherwise it prints nothing and the agent stops normally.
+   Otherwise it prints nothing and the agent stops normally. This is the default `claim`
+   mode; see [Options](#options) for `always` and `audit`.
 
 An honest report ("done, but I could not run the integration tests") is labelled partial and
 is never blocked in the default mode.
@@ -78,11 +111,60 @@ is never blocked in the default mode.
 |---|---|
 | `--mode claim` | default: block only when the final message claims completion |
 | `--mode always` | block on missing or failing verification whatever the message says |
+| `--mode audit` | block every report of finished work (complete or partial) once, even after passing tests (see [Audit mode](#audit-mode)) |
 | `--count-all-edits` | count edits to documentation files as edits too (see [Limits](#limits)) |
 | `--test-cmd REGEX` | extra pattern for a test command, searched in each simple command; repeatable (`--test-cmd "\bcheck\.sh\b"`) |
 
+`overclaim inspect TRANSCRIPT --mode MODE` shows whether the hook would block a recorded
+session in a given mode.
+
+### Audit mode
+
+Passing tests show only that the agent's own checks pass. Most false completions come after
+the agent's tests passed: the work did what it checked, not everything the task asked. In
+audit mode, the hook blocks once whatever the evidence says, whenever the final message reports
+finished work (labelled complete or partial), with:
+
+> Before you finish, audit your work against the request. Re-read the task and list each
+> requirement it states, including edge cases and error behaviour. For each one, point to a
+> test or command you ran that shows it works; where none exists, write a quick check and
+> run it. Fix anything that fails. Then report which requirements you verified and which you
+> could not.
+
+When verification is also missing or failing, the reason ends with a note saying so (for
+example "Note: no test command ran after your last edit (src/parser.py)."). Messages that say
+the work is not done (incomplete) or make no claim are never blocked. Partial reports are
+audited too because the rule classifier confuses complete and partial far more often than
+either with incomplete ([claims.md](claims.md)). As in every mode, `stop_hook_active` limits
+this to one block per stop, so each audited stop costs one more agent turn.
+
 Set `OVERCLAIM_HOOK_DISABLE=1` in the environment to turn the hook off without editing
 settings.
+
+## The post-tool log
+
+`overclaim hook claude-post-tool` appends one line per call to
+`<temp dir>/overclaim-hooks/<session_id>.jsonl` (the session id reduced to `A-Z a-z 0-9 _ -`;
+`OVERCLAIM_HOOK_LOG_DIR` overrides the directory). It never writes into the project and never
+prints to stdout. Lines are [generic-jsonl](formats.md#generic-jsonl) events:
+
+```json
+{"type": "edit", "path": "src/parser.py", "tool": "Edit"}
+{"type": "command", "tool": "Bash", "command": "pytest -q", "exit_code": 1, "is_error": true, "output": "..."}
+```
+
+- Shell tools (`Bash`, `PowerShell`): `PostToolUse` means the command exited 0 (exit code 0,
+  output from `tool_response.stdout` and `stderr`). `PostToolUseFailure` carries `error`,
+  whose first line is `Exit code N` for a command that ran; the exit code is N, or unknown
+  for failures without that line (timeouts, denials, `is_interrupt`). Backgrounded and
+  interrupted commands have no exit code. Output is capped at 8 KB.
+- File tools (`Edit`, `Write`, `MultiEdit`, `NotebookEdit`): one `edit` per successful call;
+  failed calls changed nothing and are not logged.
+- Other tools are ignored. Subagents share the session id, so their calls land in the same
+  log.
+
+The logs are small and are not deleted (a session can stop several times); clear the
+directory when you like.
 
 ## Failure behaviour
 
@@ -124,8 +206,17 @@ would without the hook, and writes one line starting with `overclaim hook:` to s
 
 ## Hook contract relied on
 
-From the Claude Code hooks reference (<https://code.claude.com/docs/en/hooks>, Stop section,
-checked 2026-10-10):
+From the Claude Code hooks reference (<https://code.claude.com/docs/en/hooks>, checked
+2026-10-10).
+
+PostToolUse and PostToolUseFailure: both receive `tool_name`, `tool_input` and
+`tool_use_id`. PostToolUse runs "after a tool call succeeds" and adds `tool_response`, which
+for `Bash` is an object with `stdout`, `stderr`, `interrupted` and `isImage`.
+PostToolUseFailure runs after a tool call fails and adds `error` (for a shell command that
+ran, starting with `Exit code N`) and `is_interrupt`. Matchers on the tool name apply to both.
+Neither can block, and the post-tool hook prints nothing.
+
+Stop and SubagentStop:
 
 - Stop input includes the common fields `session_id`, `transcript_path`, `cwd`,
   `permission_mode`, `hook_event_name`, plus `stop_hook_active` ("true when Claude Code is
