@@ -1,0 +1,48 @@
+prompt = """
+The `adventure` text-adventure engine has several reported bugs. Find and fix their causes;
+README.md documents the intended behaviour. Keep all other existing behaviour unchanged.
+
+The examples use a world with a Great Hall (items: `brass lamp`, `tea cup`, `pizza box`; exits
+north to the Library, east to the Garden, down to a dark Cellar), a Library with an Attic
+above it (the attic holds an `anvil`, weight 9), capacity 10.
+
+1. Multi-word item names are mangled. `take the tea cup` answers "You see no tecup here." and
+   `take a pizza box` / `put the tea cup in the pizza box` fail the same way, while `take lamp`
+   works. Articles (`a`, `an`, `the`, `some`) must only be removed as whole words, in every
+   command that takes a noun phrase.
+
+2. The carrying limit is off by one. With a tea cup (weight 1) in the inventory, `take anvil` in
+   the attic (weight 9, capacity 10) says "too heavy" although the total would be exactly 10;
+   it must succeed (10/10). Anything above the capacity is still refused, and `take all` keeps
+   skipping only what does not fit.
+
+3. Two games from the same `WorldDef` interfere. After `g1 = Game(w); g2 = Game(w)` and
+   `g1.execute("take lamp")`, the lamp is also gone from `g2`'s Great Hall (and from
+   `w.rooms["hall"].items`). Every game must start with its own state and never modify the world
+   definition; restoring a saved game must not either.
+
+4. Going down a staircase gives no way back. After `down` into the cellar, `up` answers "You
+   can't go that way." and `down` leads back to the hall. Exits are two-way (README); locked vertical exits
+   must be locked and unlockable from both sides too.
+
+5. Refused commands use up turns. `xyzzy`, `w` (no exit), `take sword`, `drop lamp` (not carried)
+   and the like advance the turn counter, so `score` shows turns that never happened and a
+   timed event (`{"turn": 3}`) fires too early. Only successful turn-taking commands count.
+
+6. Treasure points can be earned again after loading a saved game. Take the gold coin
+   (+10), `save`, restore it with `Game.restore`, then `drop coin` and `take coin`: the score
+   goes up to 20. The saved game must remember which treasures were already scored (the
+   snapshot from `save.dump` needs a `scored` entry); older saves without it still load.
+
+7. A lit lamp that is dropped no longer lights the room. In the dark cellar: `light lamp`,
+   then `drop lamp`: `look` says "It is pitch dark" and `take coin` is refused, although the
+   lamp is lying lit in the room. A dark room is lit by a lit light source carried or lying in
+   the room; an unlit lamp does not help.
+
+Hidden checks cover each symptom, close variants through the related code paths named above,
+and a broad regression suite of the current correct behaviour. Run the visible tests with
+`python -m unittest discover -s tests -t .`.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["bugfix", "multi-file", "bughunt"]

@@ -1,0 +1,46 @@
+prompt = """
+`cfgkit` loads INI and JSON configuration; add TOML support. The project supports Python 3.8+,
+so you must write the parser yourself: do not import (or shell out to) `tomllib`, `tomli`,
+`toml`, `tomlkit` or any other TOML library, in any module of the package.
+
+**`cfgkit/toml.py`** (new): `loads(text) -> dict` implements TOML v1.0.0 and must behave exactly
+like a conforming parser (for example Python 3.11's `tomllib`, which is what the hidden tests
+compare against) on every valid and invalid document, with ONE deliberate exception: date,
+time and date-time values are not supported and raise `ParseError`. In detail:
+- comments, bare/quoted/dotted keys (whitespace allowed around the dots), basic, literal,
+  multi-line basic and multi-line literal strings with all escape rules (`\\b \\t \\n \\f \\r \\" \\\\
+  \\uXXXX \\UXXXXXXXX`, line-ending backslash trimming, the first newline after the opening
+  delimiter trimmed, up to two quotes next to the closing delimiter, unicode escapes must be
+  scalar values), integers (decimal with underscores, no leading zeros, `0x`/`0o`/`0b`),
+  floats (fraction/exponent/underscores, `inf`, `nan` with optional sign), booleans, arrays
+  (any mix of types, newlines, comments and a trailing comma allowed), inline tables (one line,
+  no trailing comma), `[table]` and `[[array of tables]]` headers;
+- control characters (other than tab, and newline where allowed) in strings and comments are errors;
+  a `\\r\\n` line ending is treated exactly like `\\n` everywhere (also inside multi-line strings);
+  a lone `\\r` is an error;
+- every TOML rule about what may be defined where: duplicate keys; redefining a table; tables
+  created implicitly by `[a.b.c]` or by dotted keys; dotted-key tables cannot be reopened with a
+  `[header]` but sub-tables of them can be added; inline tables and static arrays are immutable
+  (no extending them by dotted keys, `[a.b]` headers or `[[a]]`); an `[[array of tables]]` header
+  starts a new element and forgets the table flags of the previous element; a header cannot
+  turn a value into a table, and so on.
+Return plain `dict`/`list`/`str`/`int`/`float`/`bool` objects (an integer never becomes a float).
+
+**Errors**: any problem raises `cfgkit.ParseError` (the existing class) whose `.line` is the
+1-based line on which the statement containing the problem STARTS (the line of the key or the
+`[` of the header, counted after treating `\\r\\n` as a newline), also for errors inside a
+multi-line string, array or on a later line of the same statement. Parsing a non-`str` raises
+`ParseError`. The parser must be linear-time enough to read a document of 60,000 lines (and
+keep a line counter that is not quadratic) within a few seconds.
+
+**Integration**: `load_text(text, "toml")` and `load_file` for the suffix `.toml` (case-insensitive,
+UTF-8, like the existing formats, so `load_layers` can mix ini/json/toml files);
+`Config.from_toml(text)`; `cfgkit.loads_toml` exported from the package;
+`Config.get(path, default)` now also walks lists: a path component made only of decimal digits
+indexes a list (`"servers.1.host"`), an out-of-range index or a non-numeric component on a list
+counts as missing (default / `KeyError`) and `Config.__contains__` follows the same rule.
+Existing INI/JSON/Config behaviour is unchanged.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 180
+tags = ["feature", "hard", "multi-file", "differential", "parser"]

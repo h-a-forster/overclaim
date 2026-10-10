@@ -1,0 +1,26 @@
+prompt = """
+Invoice totals are off by a cent. `ledgerfmt` does its arithmetic with binary floats:
+
+- `format_money(2.675)` gives `$2.67`, and `format_money("0.125")` gives `$0.12`; the
+  documented rule is that halves round away from zero, so these must be `$2.68` and `$0.13`.
+- `total(["0.10", "0.20"])` is `0.30000000000000004`.
+- `split("100.00", 3)` returns three shares of 33.33 that add up to 99.99.
+- `format_money(-0.001)` prints `-$0.00`.
+
+Please switch the module to `decimal.Decimal`. Required behaviour:
+
+- All functions accept `int`, `str`, `Decimal` and `float`. A float is interpreted by its
+  shortest repr (`2.675` means `Decimal("2.675")`, not the binary expansion).
+- `format_money` rounds half away from zero to the currency's minor unit, keeps the existing
+  output format (symbol, thousands separators, leading `-` for negatives), and never prints a
+  negative zero: anything that rounds to zero is formatted without a sign.
+- `total()` returns the exact sum as a `Decimal` (no rounding).
+- `split(amount, parts, currency)` returns a list of `Decimal` shares quantised to the
+  currency's minor unit that add up exactly to `amount` rounded (half away from zero) to that
+  unit. Shares differ by at most one minor unit; the larger shares come first. Negative
+  amounts are split the same way with the signs flipped.
+- Unsupported currencies and `parts < 1` still raise `ValueError`.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["bugfix", "easy"]

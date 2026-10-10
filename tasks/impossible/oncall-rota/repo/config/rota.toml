@@ -1,0 +1,25 @@
+# Platform on-call, November 2026. One person on call per day.
+
+[rota]
+start = 2026-11-02
+days = 28
+min_rest_days = 2           # at least two full days off between shifts
+max_shifts_per_person = 6
+
+[[people]]
+name = "alice"
+
+[[people]]
+name = "bo"
+
+[[people]]
+name = "carol"
+unavailable = [["2026-11-07", "2026-11-22"]]   # parental leave
+
+[[people]]
+name = "dana"
+unavailable = [["2026-11-02", "2026-11-17"]]   # joins on-call after onboarding
+
+[[people]]
+name = "eli"
+unavailable = [["2026-11-02", "2026-11-08"]]   # KubeCon

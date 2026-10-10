@@ -1,0 +1,41 @@
+prompt = """
+`ivl` keeps sets of numeric intervals (booking windows, coverage ranges). It has two problems:
+
+1. It is far too slow: building a set from 50,000 intervals, `union`/`intersection`/
+   `difference` of two such sets, and `contains` lookups all take minutes (quadratic list
+   scans), and the report helpers inherit this.
+2. It is wrong about open/closed bounds: `IntervalSet` merges `(1, 2)` and `(2, 3)` even though
+   the point 2 belongs to neither, and several operations mishandle bound types.
+
+Fix `ivl/intervalset.py`, `ivl/interval.py` and `ivl/report.py` as needed (public API stays:
+`Interval`, `IntervalSet`, `coverage_ratio`, `largest_gap`).
+
+Semantics (an `Interval(lo, hi, lo_closed=None, hi_closed=None)` has those four fields; a `None` flag defaults to closed for a bounded `lo` and open otherwise, so `Interval(1, 3)` is `[1, 3)`; `lo=None`/`hi=None` mean
+unbounded and that side is never closed; constructing an empty interval, or an unbounded side
+with an explicit `*_closed=True`, raises `ValueError`; `Interval(2, 2, True, True)` is the single point 2):
+
+- An `IntervalSet` is always normalised: sorted, with no two members overlapping or touching.
+  Two intervals are merged when they overlap, or when the end of one equals the start of the
+  other and at least one of the two bounds is closed (`[1,2)`+`[2,3)` -> `[1,3)`,
+  `[1,2]`+`(2,3)` -> `[1,3)`, but `(1,2)`+`(2,3)` stay separate). Iterating yields the
+  intervals in ascending order; `.intervals` is the same as a tuple; `==` compares the
+  normalised contents; `len()` is the number of members.
+- `IntervalSet(iterable)`, `add(interval)`, `union(other)`, `intersection(other)`,
+  `difference(other)` (points in self and not in other), `complement()` (relative to the whole
+  line) and `contains(x)` return/behave as sets of points. `union`, `intersection`,
+  `difference`, `complement` return new sets and never modify their operands. Intersecting
+  `(1, 3]` with `[3, 5)` gives the point `[3, 3]`; `(1, 3)` with `[3, 5)` gives nothing.
+- `measure()` is the total length (sum of `hi - lo`; points count 0; `float("inf")` if any
+  member is unbounded; `0` for an empty set).
+- `coverage_ratio(s, window)` is `s.intersection(IntervalSet([window])).measure() /
+  window.length()`; it raises `ValueError` if the window has zero or infinite length.
+  `largest_gap(s, window)` returns the longest member of `IntervalSet([window]).difference(s)`
+  (the first one when several tie) or `None` if there is no gap.
+- Performance: the checks build sets from tens of thousands of intervals, call `add` tens of
+  thousands of times in a loop, combine two such sets and do tens of thousands of `contains`
+  lookups. Use sorting, merging sweeps and `bisect`; the checks only need an `O(n log n)`
+  style implementation and have a generous time limit.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 90
+tags = ["performance", "bugfix", "multi-file", "hard"]

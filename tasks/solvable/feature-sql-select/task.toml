@@ -1,0 +1,65 @@
+prompt = """
+`minisql` only runs `SELECT cols FROM t WHERE col op literal [AND ...] [ORDER BY col] [LIMIT n]`.
+Turn it into a real (small) SQL SELECT engine. The hidden tests compare thousands of generated
+queries with SQLite 3 (Python's `sqlite3`), so wherever this text is silent the answer is
+"what SQLite does". You may restructure `lexer.py`, `parser.py`, `engine.py` freely; keep the
+public API (`Database.create_table/insert/execute`, `Result.columns/.rows`, `SqlError`) and the
+old queries working (`WHERE col = NULL` etc. now simply follow SQL three-valued logic, which
+gives the same answers as before). Values are `int`, `float`, `str` and `None` (NULL); tables
+hold one type per column (plus NULLs), so mixed-type comparisons and implicit text<->number
+conversions are not tested. Identifiers and keywords are case-insensitive; string literals use
+`'...'` with `''` as an escaped quote; an optional trailing `;`.
+
+**Grammar**
+`SELECT [DISTINCT|ALL] item, ... [FROM source] [WHERE e] [GROUP BY e, ...] [HAVING e]
+[ORDER BY e [ASC|DESC], ...] [LIMIT e [OFFSET e]]`
+- item: `*`, `alias.*`, or `expr [[AS] name]`. FROM is optional (`SELECT 1 + 1` is one row).
+- source: `table [[AS] alias]` followed by any number of `, table`, `[INNER] JOIN t ON e`,
+  `LEFT [OUTER] JOIN t ON e`, `CROSS JOIN t` (no ON; `JOIN` without `ON` is allowed for
+  inner/cross, `LEFT JOIN` requires `ON`). Tables may be repeated under different aliases; using the same alias twice in one FROM is a
+  `SqlError`.
+  Unqualified column names must be unambiguous (`SqlError` otherwise); `alias.col` and
+  `table.col` (when the table has no alias) work.
+- expressions (highest to lowest precedence; all binary operators are left-associative):
+  unary `-` `+`; `||`; `* / %`; `+ -`; `< <= > >=`; `= != <> IS [NOT] expr, [NOT] IN (list),
+  [NOT] LIKE, [NOT] BETWEEN a AND b, IS [NOT] NULL`; `NOT`; `AND`; `OR`. Note that `||` binds
+  tighter than `*` as in SQLite (`2 * 3 || 4` is 68), comparisons are left-associative (`1 < 2 = 1`),
+  and `NOT a = b` is `NOT (a = b)`. The operands of BETWEEN/LIKE/IN bind at the `< <= > >=`
+  level or tighter.
+  Literals: integers, decimals like `1.5`, strings, `NULL`. Functions: `coalesce(a, b, ...)` (2+
+  args), `ifnull`, `nullif`, `abs`, `length`, `upper`, `lower` (ASCII), `substr(s, start[, len])`
+  (SQLite semantics; tests use start >= 1 and len >= 0), `CASE WHEN c THEN v ... [ELSE e] END`
+  and `CASE x WHEN v THEN ... END`. Aggregates `count(*)`, `count(e)`, `count(DISTINCT e)`,
+  `sum`, `avg`, `min`, `max` (also with DISTINCT where it makes sense; one argument only).
+  Unknown functions, wrong argument counts, unknown tables/columns, syntax errors, aggregates in
+  WHERE, trailing garbage, several statements: `SqlError`.
+
+**Semantics (SQLite)**: NULL propagates through arithmetic, comparison, `||`, functions; AND/OR/NOT
+use three-valued logic; WHERE/HAVING/ON/CASE keep a row only when the condition is true (non-zero
+number). Comparison results, AND/OR/NOT/IN/LIKE/BETWEEN/IS yield integers 1/0 (or NULL). `x IN
+(list)`: empty list is 0, a match is 1, otherwise NULL if x or any list item is NULL, else 0;
+`NOT IN` negates (NULL stays NULL). `BETWEEN` is `x >= lo AND x <= hi`. Integer `/` truncates
+toward zero, `%` takes the sign of the dividend, division or modulo by zero gives NULL;
+int op float is float. `LIKE` is case-insensitive for ASCII with `%` and `_`, no escape
+character. Ordering and MIN/MAX use NULL < numbers < text; ORDER BY puts NULLs first for ASC and
+last for DESC; ties may come in any order (tests make orderings total). ORDER BY terms may be an
+integer ordinal of the select list, a select alias, or any expression. LIMIT/OFFSET take constant
+integer expressions; a negative LIMIT means no limit, a negative OFFSET is 0.
+`SUM` of no non-NULL values is NULL, of ints an int, otherwise float; `AVG` is a float or NULL;
+`COUNT` never NULL; an aggregate query without GROUP BY always returns exactly one row (even over
+no input), with GROUP BY one row per distinct key (NULLs form one group; HAVING filters groups; a
+HAVING without GROUP BY is allowed). Non-aggregated, non-grouped columns in an aggregate query are
+not tested. LEFT JOIN null-extends unmatched left rows (ON decides matching, WHERE filters
+afterwards). DISTINCT removes duplicate output rows.
+
+**Result columns**: `Result.columns` lists, per select item, its alias; else the column name
+(lower-case, as stored) for a plain column reference; else the exact source text of the
+expression from its first to its last token (`select a + 1 ...` gives `"a + 1"`). `*`
+expands to the column names of every source in FROM order, `alias.*` to one source's columns.
+
+Performance: GROUP BY over 20,000 rows and a 20,000 x 50 join must finish within seconds
+(do not re-scan the whole right table through Python-level expression re-parsing for each row).
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "hard", "multi-file", "differential", "parser"]

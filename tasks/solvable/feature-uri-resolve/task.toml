@@ -1,0 +1,55 @@
+prompt = """
+`urikit` splits URIs and has a simplified `join`. Make it a proper RFC 3986 implementation
+(changes touch `urikit/uri.py`, `urikit/join.py`/a new resolver module, `urikit/linkset.py` and
+`urikit/__init__.py`). Everything below refers to RFC 3986; use its definitions literally.
+
+**`parse(text)`** now validates and raises `UriError` (a `ValueError`) for text that is not a
+valid URI-reference. The split is still RFC appendix B, `Uri` stays a namedtuple of
+`(scheme, authority, path, query, fragment)` with `None` for absent parts and `""` for present
+but empty ones, and `str(uri)` recomposes per section 5.3 (so `str(parse(s)) == s` for every
+valid `s`). Validity: a non-string is a `UriError`; the scheme (text before the first `:` when
+that comes before any `/ ? #`) must match `ALPHA *( ALPHA / DIGIT / "+" / "-" / "." )`; without a
+scheme and authority the first path segment must not contain `:`; userinfo is
+`*( unreserved / pct-encoded / sub-delims / ":" )`; the host is a reg-name
+(`unreserved / pct-encoded / sub-delims`) or an IP-literal in brackets whose content is either
+IPv6-ish (only hex digits, `:` and `.`, with at least two `:`) or IPvFuture (`v` HEXDIG+ `.` then
+one or more of unreserved / sub-delims / `:`); the port is digits only (possibly empty); path
+characters are `pchar` and `/`; query and fragment are `pchar`, `/` and `?`. Every `%` must be
+followed by two hex digits. Anything else (spaces, the characters `< > " { } | ^`, backslash and backtick, non-ASCII
+characters, `[` / `]` outside an IP literal, `@` in the host, ...) is a `UriError`. `Uri` gains properties `userinfo`,
+`host` (as written, brackets included for IP literals; `""` for an empty host), `port` (an `int`;
+`None` if absent or empty) - all `None` when there is no authority - and keeps `is_absolute`.
+
+**`remove_dot_segments(path)`**: exactly the input-buffer/output-buffer algorithm of section
+5.2.4 (including its behaviour on rootless paths: `a/../../b` becomes `/b`).
+
+**`resolve(base, ref)`** (strings): the strict algorithm of section 5.2.2 with merge (5.2.3) and
+recomposition (5.3). Both are validated (`UriError`); `base` must have a scheme (fragment
+ignored). Scheme and host case, percent-encoding and so on are NOT touched by `resolve`.
+`join(base, ref)` stays and is now identical to `resolve`. All examples of RFC section 5.4 hold
+(including `http:g` staying `http:g` in strict mode).
+
+**`normalize(text)`** (input must be an absolute URI, else `UriError`) applies, in this order:
+(1) lowercase the scheme; (2) in every component, uppercase the hex digits of each percent
+encoding and decode those that encode an unreserved character (`ALPHA DIGIT - . _ ~`), then
+lowercase the host's letters, except the hex digits of percent encodings, which stay uppercase
+(userinfo, path, query, fragment keep their case); (3) `remove_dot_segments`
+on the path; (4) scheme-based rules: drop the port when it is empty (`:` alone) or its integer value is
+the scheme's default (`http` 80, `https` 443, `ftp` 21, `ws` 80, `wss` 443; other ports are kept
+exactly as written, e.g. `:00081`), and for those five schemes an empty path becomes `/` when
+an authority is present. An empty query `?` / empty fragment `#` are kept. Percent-decoding
+happens before dot-segment removal (`/%2e%2e/` is a dot segment). `equivalent(a, b)` is
+`normalize(a) == normalize(b)`. Inputs where dot-segment removal would turn an authority-less
+path into one starting with `//` are not tested.
+
+**`collect_links(base, hrefs)`** (used by the crawler) changes to: `base` must be a valid absolute
+URI (`UriError` otherwise); each href is stripped of leading/trailing ASCII whitespace
+(space, tab, newline, carriage return, form feed), resolved against `base`, has its fragment
+removed, and is normalised; hrefs that are invalid are silently skipped, as are links whose
+scheme (after normalisation) is not `http` or `https`; duplicates (after normalisation) are
+dropped keeping the first occurrence. Export `resolve`, `normalize`, `equivalent` and
+`remove_dot_segments` from the package.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "hard", "multi-file", "differential", "rfc"]

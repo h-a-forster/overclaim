@@ -1,0 +1,55 @@
+prompt = """
+`tplr` renders our notification emails, and templates now need more than it offers. Extend the
+engine (lexer, expression language, filters, parser and renderer; keep `Template(source).render(**ctx)`,
+`render(source, **ctx)` and the three exception classes). Everything below must work; existing
+templates must keep rendering as before.
+
+Lexing
+- A tag ends at the first closing delimiter (`}}`, `%}`, `#}`) that is not inside a quoted
+  string, so `{{ x|default("}}") }}` works. Quotes are `"` or `'`; a backslash inside a string
+  escapes the next character. Comments (`{# ... #}`) end at the first `#}`. An unterminated
+  `{{`, `{%` or `{#` raises `TemplateSyntaxError` whose `line` is the line where it starts.
+- Whitespace control: a `-` directly after the opening delimiter (`{{-`, `{%-`, `{#-`) removes
+  all whitespace (spaces, tabs, newlines) at the end of the text just before the tag; a `-`
+  directly before the closing delimiter (`-}}`, `-%}`, `-#}`) removes whitespace at the start of
+  the text just after it. Only adjacent literal text is affected. `line` numbers still refer to
+  the original source.
+
+Expressions (used by `{{ }}`, `{% if %}`, `{% elif %}` and `{% for ... in %}`)
+- Operands: variable paths (`user.name`, `items.0`; missing anything -> `None`, which prints as
+  an empty string), string literals (`"a"`/`'a'` with escapes `\\n`, `\\t`, and `\\x` -> `x` for
+  any other `x`), integers, floats (`-3`, `2.5`), and `true`, `false`, `none`.
+- Filters: `operand|name` or `operand|name(arg, ...)` with literal arguments, chainable
+  (`x|trim|upper`), binding tighter than anything else. Filters: `upper lower title trim`
+  (a `None` input counts as `""`), `length` (`None` -> 0), `join` (optional separator argument,
+  default `", "`; `None` -> `""`), `default(v)` (returns `v` when the input is `None` or `""`,
+  otherwise the input, so `0` and `false` are kept), `truncate(n)` (text of at most `n`
+  characters: unchanged if it fits, else the first `n-3` characters + `"..."`, with `n-3`
+  floored at 0), `replace(old, new)`, `first`, `last` (first/last element, `None` when empty or
+  `None`). Wrong argument counts and unknown filters are a `TemplateSyntaxError` (at parse
+  time, with the tag's line); an exception inside a filter is a `TemplateRenderError`.
+- Operators from lowest to highest precedence: `or`; `and`; `not`; one comparison
+  (`== != < <= > >= in` or `not in`); parentheses group. Chained comparisons (`a < b < c`) are a
+  `TemplateSyntaxError`. `and`, `or`, `not` and comparisons yield `True`/`False` (printed as such
+  by `{{ }}`). A comparison that raises `TypeError` in Python (e.g. `none < 3`, `5 in 3`) is
+  `False`; `x in none` is `False` and `x not in none` is `True`.
+- Empty or malformed expressions raise `TemplateSyntaxError`.
+
+Blocks
+- `{% if %}`, any number of `{% elif %}`, optional `{% else %}`, `{% endif %}`.
+- `{% for x in seq %}` / `{% for k, v in seq %}` (names separated by commas, each item is
+  unpacked; a wrong number of values or a non-iterable item raises `TemplateRenderError`),
+  optional `{% else %}` rendered when the sequence is empty or `None`, `{% endfor %}`.
+  Strings iterate characters and dicts iterate keys; any other non-iterable value (except
+  `None`) raises `TemplateRenderError`.
+- Inside a loop `loop.index` (from 1), `loop.index0`, `loop.first`, `loop.last` and
+  `loop.length` are available; in nested loops `loop` is the innermost one. Loop variables
+  disappear after the loop and do not overwrite outer variables permanently.
+- Syntax errors (`TemplateSyntaxError`, `.line` = line of the offending tag): unknown tag,
+  `elif`/`else`/`endif`/`endfor` that do not match the innermost open block (including `elif`
+  after `else` and a second `else`), and a block still open at the end of the template (line of
+  its opening tag, innermost open block first).
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "multi-file", "hard"]

@@ -1,0 +1,9 @@
+{
+  "number": "PO-21-0107",
+  "year": 2021,
+  "lines": [
+    {"vendor": "ACME", "sku": "BOLT-M8", "qty": 250},
+    {"vendor": "ACME", "sku": "WASHER-M8", "qty": 500},
+    {"vendor": "NORDSTAHL", "sku": "ANGLE-40", "qty": 6}
+  ]
+}

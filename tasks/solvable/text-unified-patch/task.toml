@@ -1,0 +1,58 @@
+prompt = """
+`udiff` applies unified diffs to in-memory files (`apply_patch(files, patch_text)`), but it
+only handles patches that match line numbers exactly and assume every line ends in a newline,
+and it trusts malformed input. Make it behave like a careful `patch(1)`. Public API:
+`apply_patch(files, patch_text, strip=1, reverse=False)`, `parse_patch(text)`, `PatchError`
+(attributes `message`, `line`, `file`, `hunk`). Work in `udiff/models.py`, `parser.py`,
+`matcher.py` and `api.py` as needed. The existing visible tests must keep passing
+(`Hunk.lines` stays a list of `(tag, text)` pairs).
+
+Lines and the "no newline" marker
+- File text is split on `"\\n"` only (`"\\r"` is ordinary content). Lines are compared
+  including their terminator: a line is `"\\n"`-terminated unless it is the last line of a text
+  that does not end in `"\\n"`. In a patch, a line starting with `\\` (`\\ No newline at end of
+  file`) means the immediately preceding hunk line has NO terminator (for a context line, on
+  both sides; for `-` only the old side; for `+` only the new side). So replacing a last line
+  `foo` (no newline) by `foo\\n` is `-foo`, marker, `+foo`. A marker does not count towards the
+  hunk's line counts; a marker with no preceding hunk line is a parse error.
+
+Parsing (`parse_patch`)
+- File headers are `--- OLD` followed directly by `+++ NEW`; anything after a TAB in a path
+  and trailing whitespace is dropped; other lines between hunks (`diff --git`, `index ...`,
+  junk) are ignored. A hunk header is `@@ -a[,b] +c[,d] @@` (a missing count means 1). A hunk
+  is read by count: context lines (` `) use one of both counts, `-` one old, `+` one new. A
+  completely empty line inside a hunk is an empty context line. A hunk ends as soon as both
+  counts are used up (a following marker still belongs to it). Errors raise `PatchError` with
+  `.line` = 1-based patch line: a hunk header before any file header (that header's line); a
+  line inside a hunk that does not start with ` `, `+`, `-` (that line; this also covers a hunk
+  that is cut short by the next `@@` or `diff`/`index` line); a hunk cut short by the end of the patch
+  (the hunk header's line); a context/`-` line when the old count is already used up, or a
+  context/`+` line when the new count is already used up, while the other count is still open
+  (that line).
+
+Applying (`apply_patch`)
+- Returns a new dict (the input is never modified); on any error nothing is returned, the
+  error is a `PatchError` with `.file` (the path as keyed in `files`, after stripping) and
+  `.hunk` (1-based) when a hunk does not apply. Paths are stripped of `strip` leading
+  components (`a/x.txt` -> `x.txt`; a path with `<= strip` components keeps only its last
+  component; `/dev/null` is never stripped). Patches in the text are applied in order, each
+  seeing the results of the previous ones.
+- Hunk position: the nominal 0-based start of a hunk is `old_start - 1`, or `old_start` when
+  its old count is 0. Each hunk is searched at `nominal + drift`, where `drift` is
+  `found - nominal` of the previous hunk of the same file (0 for the first). Candidate
+  positions are those `q` with `end_of_previous_hunk <= q <= len(lines) - len(old_block)`,
+  tried in order of increasing `|q - (nominal + drift)|`, the smaller `q` first on ties; the
+  first one where the whole old block (context + `-` lines, with terminators) equals the file
+  lines wins. A hunk with an empty old block therefore goes to the candidate closest to its
+  expected position. No match -> `PatchError`.
+- `--- /dev/null` creates a file (error if it already exists); `+++ /dev/null` deletes one
+  (error if the lines left after applying are not empty); a file that does not exist cannot be
+  modified (error). If old and new names differ (after stripping) the file is renamed: its
+  content is read from the old name, written to the new name, the old name is removed, and
+  it is an error if the new name already exists. A patch with no hunks just renames.
+- `reverse=True` applies the inverse patch: old/new swapped in names and hunks, `+`/`-` swapped,
+  and the file patches processed in reverse order (so a created file is deleted, etc.).
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "multi-file", "hard"]

@@ -1,0 +1,16 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+.coverage
+htmlcov/
+tmp/
+/runs/
+.overclaim-cache/
+# Built from src/ by scripts/build_hook.py before an experiment run
+experiments/arms/*/.claude/hooks/*.pyz

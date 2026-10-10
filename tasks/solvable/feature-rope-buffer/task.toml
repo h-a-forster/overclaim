@@ -1,0 +1,49 @@
+prompt = """
+`editbuf` (changes touch `editbuf/buffer.py`, `editbuf/history.py` and `editbuf/__init__.py`)
+keeps all text in one Python `str`, so edits and line queries are O(file size), and it has no
+markers, no `replace` and no undo groups. Extend it as follows without changing the existing
+behaviour (offsets are character offsets, lines are separated by `"\\n"` only).
+
+**`Buffer`**
+- `replace(start, end, s)`: exactly `delete(start, end)` followed by `insert(start, s)`, but
+  validated up front. Every mutator and query validates its arguments before changing anything
+  and raises `ValueError` for out-of-range or reversed positions/ranges/lines/columns (as
+  today). Inserting or deleting nothing is a valid no-op.
+- Markers: `add_marker(pos, gravity="left")` returns a `Marker` (exported) with attributes
+  `pos`, `gravity` (`"left"` or `"right"`, `ValueError` otherwise; `pos` must be a valid offset)
+  and `alive`. A marker follows edits: on `insert(p, s)` a marker with `pos > p` moves by
+  `len(s)`, one with `pos == p` moves only if its gravity is `"right"`, others stay; on
+  `delete(a, b)` a marker with `pos >= b` moves left by `b - a`, one with `a < pos < b` moves to
+  `a`, others stay. `replace` applies those two rules in sequence (so a marker inside the
+  replaced range ends at `start` for gravity `"left"` and after the new text for `"right"`).
+  `remove_marker(marker)` stops tracking it (`alive` becomes `False`, `pos` keeps its last
+  value; removing twice is fine).
+- Scale: a buffer of about 4 million characters (150,000 lines) must take 20,000 random inserts and
+  deletes (with a few markers registered) in a few seconds, `offset_to_line_col`,
+  `line_col_to_offset`, `line_range` and `line_text` must be fast on it (thousands of queries
+  in a few seconds), and building a buffer from a 6,000,000-character string and reading it back
+  must not be slow. Appending/inserting into a 3,000,000-character single line 6,000 times must
+  also be fast. (A rope, piece table, gap buffer or chunk list with per-chunk newline counts
+  are all fine; correctness at chunk boundaries is tested.)
+
+**`History`** (undo/redo of the edits made *through it*; edits applied directly to the buffer
+behind its back are not supported)
+- new `replace(start, end, s)`; `insert`/`delete`/`replace` that change nothing (empty text and
+  empty range) record nothing; invalid arguments raise `ValueError` and record nothing.
+- Groups: `begin_group()` / `end_group()` and the context manager `with history.group():`.
+  Edits inside a group (nesting flattens into the outermost group) form ONE undo step, undone in
+  reverse order and redone in original order. An empty group records nothing (and does not
+  clear the redo stack). `end_group()` without a matching `begin_group()`, and `undo()`/`redo()`
+  while a group is open, raise `RuntimeError`. The context manager closes the group even if the
+  body raises.
+- Recording an edit clears the redo stack (as today), at once: an edit recorded while a group is
+  open empties it straight away (`can_redo` is False after it), before the group closes. Undo applies the inverse of each recorded
+  edit through `Buffer.replace` and redo re-applies each edit through `Buffer.replace`, so markers
+  follow undo/redo exactly like they follow normal edits (e.g. undoing a deletion re-inserts the
+  text at the deletion point: a `"left"` marker there stays before it, a `"right"` marker ends up after
+  it; they are not restored to their old positions). `undo()`/`redo()` return whether
+  something was done; `can_undo` / `can_redo` as today.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 60
+tags = ["feature", "hard", "multi-file", "differential", "performance"]

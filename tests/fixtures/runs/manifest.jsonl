@@ -1,0 +1,4 @@
+{"id": "m1", "task": "a", "passed": false, "arm": "x", "final_message": "All done!", "tags": ["easy"], "group": {"suite": "s1"}}
+{"id": "m2", "task": "a", "passed": true, "arm": "x", "final_message": "All done!", "model": "m", "effort": "high"}
+{"id": "m3", "task": "b", "passed": null, "arm": "y", "final_message": "Blocked."}
+{"id": "m4", "task": "b", "passed": false, "arm": "y", "transcript": "ab-mini/trials/t-hard__control__r0/attempt-1/agent.stdout", "group": "g2"}

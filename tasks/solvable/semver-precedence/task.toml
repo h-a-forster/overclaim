@@ -1,0 +1,29 @@
+prompt = """
+`verso` only understands plain `MAJOR.MINOR.PATCH`. Our registry now publishes pre-releases
+and build metadata (`2.0.0-rc.1`, `1.4.0+build.7`), and `parse()` rejects them, so the release
+tooling crashes.
+
+Please implement full Semantic Versioning 2.0.0 support (sections 2, 9, 10 and 11 of the
+spec) in `verso/version.py`, keeping the public API (`Version`, `parse`, `compare`,
+`sort_versions`):
+
+- `parse()` accepts `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]` and fills `Version.prerelease`
+  and `Version.build` with the dot-separated identifiers as strings. It raises `ValueError` for
+  anything that is not a valid semver string, including: empty identifiers (`1.0.0-alpha..1`,
+  `1.0.0-`, `1.0.0+`), characters outside `[0-9A-Za-z-]` in identifiers, leading zeros in the
+  numeric core (`01.2.3`) or in numeric pre-release identifiers (`1.0.0-alpha.01`), a `v`
+  prefix, and surrounding whitespace. Build identifiers may have leading zeros (`1.0.0+001`).
+- Precedence follows the spec exactly: a pre-release version has lower precedence than the
+  associated normal version; pre-release identifiers are compared left to right, numeric
+  identifiers numerically (no size limit), alphanumeric ones lexically in ASCII order, numeric
+  identifiers always lower than alphanumeric ones, and a larger set of identifiers wins when
+  all preceding ones are equal. Build metadata is ignored for precedence.
+- `compare()` returns -1, 0 or 1 and accepts `Version` objects or strings. `==`, `<`, `>` etc.
+  on `Version` follow precedence (so `1.0.0+a == 1.0.0+b`), and `hash()` is consistent with `==`.
+- `str(parse(s)) == s` for every valid `s`.
+- `sort_versions()` sorts by precedence and keeps the input order for versions of equal
+  precedence.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "medium"]

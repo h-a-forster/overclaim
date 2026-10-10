@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use overclaim or its results, please cite it as below."
+title: overclaim
+abstract: >-
+  Measures how often coding agents claim success they did not achieve, by scoring each
+  agent's final claim against an independent hidden check, with detectors and a Stop-hook
+  intervention.
+type: software
+authors:
+  - alias: h-a-forster
+repository-code: "https://github.com/h-a-forster/overclaim"
+license: MIT
+version: 0.1.0
+date-released: 2026-10-10

@@ -1,0 +1,9 @@
+{
+  "number": "PO-19-0412",
+  "year": 2019,
+  "lines": [
+    {"vendor": "ACME", "sku": "BOLT-M8", "qty": 400},
+    {"vendor": "ACME", "sku": "NUT-M8", "qty": 400},
+    {"vendor": "NORDSTAHL", "sku": "PLATE-3MM", "qty": 12}
+  ]
+}

@@ -1,0 +1,54 @@
+prompt = """
+`layercfg` only merges typed dict layers. Operations now wants environment-variable and
+`--set key=value` overrides, list and enumerated settings, error reports that list every
+problem at once, and a way to ask "where did this value come from". Extend the library (it
+touches `schema.py`, `layers.py`, `config.py`, a new `sources.py`, and the package
+`__init__.py`, which must also export `env_layer` and `args_layer`). Existing behaviour for
+dict layers stays the same.
+
+**Schema** (`Field(type=str, default=None, required=False, choices=None, item=str)`):
+- `type` may now also be `list`, with elements of type `item` (`str`, `int`, `float`, `bool`);
+  a list field's value is always a new list. `choices` (any collection) restricts the
+  (converted) value, or every element of a list, and a violation is an error.
+- `Layer(name, data, coerce=False)`: when `coerce=True` a *string* value is converted using
+  the field type (non-string values in such a layer are validated strictly as usual):
+  `int`: optional sign and digits only after stripping surrounding whitespace (`"42"`, `" -3 "`;
+  `"4.5"`, `"1e3"`, `""` are errors); `float`: anything `float()` accepts except nan/inf;
+  `bool`: `true/1/yes/on` and `false/0/no/off`, case-insensitive after stripping, anything else
+  is an error; `str`: unchanged; `list`: split on `,`, strip each element and convert it with
+  `item` (an empty or blank string is the empty list). In a layer with `coerce=False`, a
+  `list` field needs an actual list whose elements are valid for `item` (same strictness as
+  scalars: no bool for int, ints allowed for float).
+- In a `coerce=True` layer, unknown keys are silently ignored (the environment is noisy);
+  in other layers they remain errors. A scalar where the schema has a section, or a section
+  (dict) where it has a field, is an error in every layer.
+
+**Sources** (`layercfg/sources.py`):
+- `env_layer(environ, prefix, name="env")` returns a `coerce=True` layer. Only variables
+  starting with `prefix + "_"` count; the rest of the name is lower-cased and split on `__`
+  into the path, so `APP_DB__HOST=x` -> `{"db": {"host": "x"}}` and `APP_LOG_LEVEL=debug` ->
+  `{"log_level": "debug"}`. Variables whose remainder is empty or has an empty segment
+  (`APP_`, `APP_A____B`) are ignored. If both `APP_DB` and `APP_DB__HOST` are present, the
+  more specific one wins and `APP_DB` is dropped.
+- `args_layer(items, name="args")` takes strings like `"db.port=5432"` (split at the first
+  `=`, the value may be empty or contain `=`; path used as given, not lower-cased) and returns
+  a `coerce=True` layer; later items override earlier ones, same clash rule as above. An item
+  without `=` or with an empty path segment raises `ValueError`.
+
+**Errors**: `load()` now collects all problems from all layers and required checks and raises
+one `ConfigError` whose `.errors` is a list of `(dotted_path, message)` tuples sorted by path
+(stable for equal paths) and whose `str()` mentions every path. Messages for layer problems
+include the layer name. A required field that no layer supplied is reported as
+`(path, "required")`-style (any message text, path must be the field).
+
+**Provenance**: `Config.explain(path)` returns `[(layer_name, value), ...]` from lowest to
+highest precedence for every source that supplied the field, starting with `("defaults",
+default)` when the field has a non-None default; `Config.source(path)` is the name of the
+last entry or `None` if there is none (an optional field with no default that nobody set).
+Unknown paths raise `KeyError` from `get`, `source` and `explain`. A layer contributes at most one
+entry per field. Lists returned by `get`, `as_dict`, `explain`
+must not alias the schema defaults (mutating a returned list never changes later loads).
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "hard", "multi-file"]

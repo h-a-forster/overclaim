@@ -1,0 +1,9 @@
+{
+  "number": "PO-23-0388",
+  "year": 2023,
+  "lines": [
+    {"vendor": "NORDSTAHL", "sku": "PLATE-5MM", "qty": 4},
+    {"vendor": "KLEBTEC", "sku": "EPOXY-2K", "qty": 10},
+    {"vendor": "KLEBTEC", "sku": "SEALANT-300", "qty": 24}
+  ]
+}

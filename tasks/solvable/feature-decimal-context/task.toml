@@ -1,0 +1,55 @@
+prompt = """
+`dec.Dec` does exact decimal arithmetic only. Add arithmetic that is rounded to a precision,
+implemented by you (changes touch `dec/number.py`, a new `dec/context.py` and `dec/__init__.py`).
+Do NOT use or import the stdlib `decimal` (or `fractions`) module anywhere in the package.
+
+**`Context(prec=28, rounding=ROUND_HALF_EVEN)`** (`ValueError` unless `prec` is a positive int
+(not bool) and `rounding` is one of the eight constants). Export from `dec`: `Context`,
+`InvalidOperation` and `DivisionByZero` (two unrelated `ArithmeticError` subclasses) and the
+constants `ROUND_UP, ROUND_DOWN, ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP, ROUND_HALF_DOWN,
+ROUND_HALF_EVEN, ROUND_05UP`, whose values are exactly the strings of the same name in the
+`decimal` module (`dec.ROUND_UP == "ROUND_UP"`, ...). Methods (arguments may be `Dec`, `int` or
+`str`; they are converted with `Dec(x)`; results are new `Dec` objects):
+
+`add(a, b)`, `sub(a, b)`, `mul(a, b)`, `div(a, b)` (true division), `divint(a, b)` (integer part
+of the quotient, truncated toward zero), `rem(a, b)` (remainder with the sign of the dividend,
+`a - b * divint(a, b)`, NOT Python's floored modulo), `quantize(a, b)` (rescale `a` to the
+exponent of `b`, rounding with the context rounding) and `sqrt(a)`.
+
+The contract is: results are IDENTICAL (sign, coefficient digits and exponent, i.e. the same
+`as_tuple()` and `str`) to the corresponding methods `add, subtract, multiply, divide,
+divide_int, remainder, quantize, sqrt` of `decimal.Context(prec=prec, rounding=rounding,
+Emax=999999999, Emin=-999999999)` with the `InvalidOperation` and `DivisionByZero` traps enabled -
+i.e. the General Decimal Arithmetic rules; exponent limits can be ignored (operands in tests have
+small exponents), special values (Infinity/NaN) do not exist. The points people get wrong:
+- results are computed exactly and then rounded to `prec` significant digits (a carry such as
+  `9.995 -> 10.0` re-normalises); `ROUND_05UP` rounds away from zero only if the last kept digit
+  would otherwise be 0 or 5; exact results are not padded.
+- exponents: `add`/`sub` give the smaller exponent of the operands when the result is exact (so
+  `12 + 7.00 = 19.00`), `mul` the sum; `div` gives the exact quotient with trailing zeros removed
+  down to the ideal exponent `exp(a) - exp(b)` (`2.400 / 2.0 = 1.20`, `1000 / 100 = 10`) or, if
+  inexact, exactly `prec` digits; `divint` has exponent 0; `rem` has exponent `min(exp(a),
+  exp(b))` and is then rounded to the context precision; `quantize` gives exponent `exp(b)`
+  exactly; `sqrt` of an exact square strips trailing zeros down to the ideal exponent
+  `exp(a) // 2` (floor), and the correctly rounded `sqrt` ALWAYS rounds half-even whatever the
+  context rounding is.
+- sign of a zero result: `add`/`sub`: `-0` if both addends are negative, otherwise (for exactly
+  cancelling or mixed-sign operands, including `0 + -0`) `-0` only under `ROUND_FLOOR` (two positive zeros give `0`);
+  `mul`, `div`, `divint`: exclusive-or of the operand signs; `rem`: sign of the dividend;
+  `quantize` and `sqrt`: sign of the operand. A zero result keeps the exponent rules above
+  (`0E+3 * 0.00` is `0E+1`).
+- errors: `div`/`divint` of a non-zero by zero raise `DivisionByZero`; `0/0`, `0//0` and any
+  `rem` by zero raise `InvalidOperation`; so do `divint`/`rem` when the integer quotient has
+  more than `prec` digits, `quantize` when the result needs more than `prec` digits (including
+  after a rounding carry) and `sqrt` of a negative non-zero number.
+Operators on `Dec` (`+ - *`) stay exact exactly as today, and `/` stays unsupported.
+
+**`Dec.to_eng_string()`** (new): the General Decimal Arithmetic engineering notation
+(exponent a multiple of three, same as `decimal.Decimal.to_eng_string`, including the zero cases
+such as `0E+4 -> 0.00E+6`). `str(Dec)` is unchanged. Existing behaviour (parsing, `round_places`,
+equality/hash, `as_tuple`, ...) must keep working. Precisions up to a few hundred digits must
+work and be fast.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "hard", "multi-file", "differential", "numeric"]

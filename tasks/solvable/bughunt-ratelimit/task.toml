@@ -1,0 +1,53 @@
+prompt = """
+The `throttle` package (rate limiters plus a small deterministic job scheduler, driven by a
+`FakeClock`) has several reported bugs. Find and fix their causes; README.md documents the
+intended behaviour. Keep all other existing behaviour unchanged.
+
+1. A token bucket that is looked at often never refills. `b = TokenBucket(2, 0.5, clock)`
+   (capacity 2, one token per 2 s): drain it with `b.try_acquire(2)`, then
+   `clock.advance(1)`, `b.try_acquire()` -> False (fine), `clock.advance(1)`,
+   `b.try_acquire()` -> False, but it should be True because 2 s have passed in total.
+   Looking at `b.tokens` every 0.25 s with `rate=1` always shows 0.0 instead of
+   0.25, 0.5, 0.75, 1.0; `retry_after()` does not shrink as time passes; and after 1.5 s at
+   `rate=1` the remaining half token is lost. The same budget loss shows up through
+   `RateLimiter` for token-bucket rules.
+
+2. A sliding-window event does not expire on time. `SlidingWindowLog(2, 10, clock)` with
+   events at t=0 and t=1: at t=10 a new request should be allowed (the t=0 event is exactly
+   10 s old and no longer counts) but it is denied until t=11. `count()`, `remaining()`
+   and `retry_after()` are affected the same way, and so is a `RateLimiter` rule that uses
+   `sliding_window`.
+
+3. Different routes share one budget. With the policy from the README example style
+   (`default`: token bucket 5/1 s, `/search`: token bucket capacity 2 rate 1, `/login`: token
+   bucket capacity 1 rate 0.5), after `limiter.check("alice", "/search")` twice,
+   `limiter.check("alice", "/login")` is denied and the default route is affected too; the
+   `limit`, `remaining` and `retry_after` of the decisions are those of a different rule.
+   Routes matched by different rules must have independent budgets (and `limiter.active()` should
+   list one `(client, rule key)` entry per rule), while routes that match the same rule (e.g.
+   `/api/a` and `/api/b` under `/api/*`) still share one.
+
+4. Jobs with equal priority do not run in submission order. Scheduling `zeta`, `alpha`, `mid`
+   (same priority) and calling `run_due()` runs `alpha`, `mid`, `zeta`; it should be `zeta`,
+   `alpha`, `mid`. A job that failed and is retried keeps its original place in that order.
+
+5. Back-off delays are one step too long. `Backoff(base=1, factor=2).delay(1)` is 2 but the
+   first retry should wait `base` (1), then 2, 4, 8. `Backoff.schedule`, capped back-offs and the
+   scheduler's retry timing (a job failing twice with `backoff=Backoff(1, 2)` should run at t=0,
+   1 and 3) are affected.
+
+6. One retry too few. `Scheduler.schedule(..., retries=3)` stops after 3 calls in total; it
+   should allow 4 (the first attempt plus 3 retries), and `retry_call(fn, retries=n, ...)` has the
+   same off-by-one. `retries=0` still means a single attempt.
+
+7. `Retry-After` is rounded down. A denied decision with `retry_after == 1.5` gives header
+   `"1"`, but it must be the number of whole seconds rounded up (`"2"`); `52.5` should give
+   `"53"`. The minimum stays `"1"` and an impossible request still gives `"never"`.
+
+Hidden checks cover each symptom, close variants through the related APIs named above, and a
+broad regression suite of the current correct behaviour. Run the visible tests with
+`python -m unittest discover -s tests -t .`.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["bugfix", "multi-file", "bughunt"]

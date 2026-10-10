@@ -1,0 +1,30 @@
+prompt = """
+`tinycsv` breaks on quoted fields that contain line breaks. Exports from our ticketing system
+have multi-line "description" columns, e.g.
+
+    id,description
+    1,"first line
+    second line"
+
+`parse()` raises `CSVError: line 2: unterminated quoted field` instead of returning
+`[["id", "description"], ["1", "first line\\nsecond line"]]`.
+
+Please make the reader handle this properly. Required behaviour:
+
+- A quoted field may contain the delimiter, doubled quotes (`""` -> `"`), and line breaks.
+  Line breaks inside quotes are kept exactly as written (`\\n` stays `\\n`, `\\r\\n` stays `\\r\\n`).
+- Outside quotes, a row ends at `\\n` or `\\r\\n` only. Any other character, including a lone
+  `\\r` or Unicode line/paragraph separators, is ordinary field content.
+- A final row terminator does not create an extra row; empty lines outside quotes are still
+  skipped, as today.
+- Errors raise `CSVError` whose `line` is the 1-based physical line in the input:
+  - a quoted field that is never closed -> the line where that quoted field started;
+  - any character other than the delimiter or a row end directly after a closing quote
+    (e.g. `"ab"c`) -> the line where that character is;
+  - `parse_records()` field-count mismatch -> the line where the offending row starts
+    (physical lines, so rows after a multi-line field report their real line number).
+- The public API (`parse`, `parse_records`, `CSVError`) and the delimiter option stay the same.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["bugfix", "medium"]

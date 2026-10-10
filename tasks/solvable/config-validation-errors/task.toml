@@ -1,0 +1,37 @@
+prompt = """
+`svcconf.load_config()` accepts almost anything. A config with `"port": "8080"` or
+`"workers": 0` loads fine and the service crashes much later, and a missing `host` surfaces as
+a bare `KeyError: 'host'`. Operators need to be told exactly what is wrong, all at once.
+
+Please add validation to `load_config()` (and therefore `load_config_file()`). Any problem
+raises `svcconf.ConfigError`; its `errors` attribute lists every problem found and `str(error)`
+is those messages joined with `"; "`. Messages must be exactly as below.
+
+Schema (see README): `host` string, required, not blank; `port` integer 1..65535, required;
+`workers` integer >= 1 (default 4); `log_level` one of debug, info, warning, error, matched
+case-insensitively and stored lower-case (default "info"); `timeout_s` number > 0, stored as a
+float (default 30.0). Booleans are never accepted as numbers.
+
+Messages (JSON type names: string, integer, number, boolean, array, object, null; an integer
+value is reported as `integer`, a non-integral number as `number`):
+
+- text is not valid JSON (only this error is reported):
+  `invalid JSON at line <L>, column <C>: <msg>` using the decoder's line, column and message
+- top level is not an object (only this error is reported):
+  `config must be a JSON object, got <type>`
+- `unknown key '<key>'`
+- `<field>: required`
+- `<field>: expected <expected>, got <type>` with expected `string`, `integer` or `number`
+- `host: must not be empty`
+- `port: must be between 1 and 65535, got <value>`
+- `workers: must be >= 1, got <value>`
+- `log_level: must be one of debug, info, warning, error, got '<value>'`
+- `timeout_s: must be > 0, got <value>`
+
+`<value>` is the value as written by `json.dumps` (e.g. `70000`, `-1.5`). Order: unknown-key
+errors first, sorted by key, then one error at most per field in the order host, port,
+workers, log_level, timeout_s.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "medium"]

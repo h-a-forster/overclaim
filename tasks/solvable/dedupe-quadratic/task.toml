@@ -1,0 +1,23 @@
+prompt = """
+The nightly merge job has become unusably slow. With ~200k records per export,
+`recmerge.consolidate()`, `recmerge.missing_ids()` and `recmerge.changed_ids()` each take many
+minutes; with 10k records they were fine. Profiling shows all three do repeated linear scans
+of lists inside loops, so they are quadratic in the input size.
+
+Please rewrite them to run in roughly linear time. Each function must still return exactly
+what it returns today for every input, including:
+
+- `consolidate`: one record per id, the highest `version` wins, ties go to the record that
+  comes later in the input, ids in order of first appearance, and the returned items are the
+  original record objects (not copies).
+- `missing_ids`: keeps the order of `expected` and its duplicates.
+- `changed_ids`: compares each new record against the *last* record with the same id in
+  `old`, and lists each changed id once, at the position of its first changed record in `new`.
+- All three accept any iterable for their record arguments (including generators).
+
+Ids are strings or integers. Target: each function handles 200,000 records in well under
+a second on an ordinary laptop.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 300
+tags = ["perf", "medium"]

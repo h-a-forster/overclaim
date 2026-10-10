@@ -1,0 +1,7 @@
+{"type": "system", "subtype": "init", "model": "claude-haiku-5-5", "claude_code_version": "2.1.296", "session_id": "fixture"}
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": "tu1", "name": "Edit", "input": {"file_path": "src/app.py", "old_string": "a", "new_string": "b"}}]}}
+{"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "tu1", "content": "The file src/app.py has been updated successfully."}]}}
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": "tu2", "name": "Bash", "input": {"command": "python -m pytest -q"}}]}}
+{"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "tu2", "content": "Exit code 1\n..F.F\n2 failed, 3 passed in 0.31s", "is_error": true}]}}
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "I implemented the parser, but 2 tests still fail; I could not fix them."}]}}
+{"type": "result", "subtype": "success", "is_error": false, "result": "I implemented the parser, but 2 tests still fail; I could not fix them.", "num_turns": 3, "total_cost_usd": 0.01}

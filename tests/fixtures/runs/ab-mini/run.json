@@ -1,0 +1,53 @@
+{
+ "schema": 1,
+ "tool": "agent-ab",
+ "version": "0.1.0",
+ "experiment": "ab-mini",
+ "baseline": "control",
+ "planned_trials": 6,
+ "agent_versions": {
+  "control": "2.1.296"
+ },
+ "config": {
+  "config": "experiment.toml",
+  "arms": [
+   {
+    "name": "control",
+    "agent": {
+     "adapter": "claude-code",
+     "model": "claude-haiku-5-5",
+     "effort": null
+    }
+   },
+   {
+    "name": "hook",
+    "agent": {
+     "adapter": "claude-code",
+     "model": null,
+     "effort": "low"
+    }
+   }
+  ],
+  "tasks": [
+   {
+    "id": "t-easy",
+    "path": "tasks/t-easy",
+    "tags": [
+     "easy"
+    ]
+   },
+   {
+    "id": "t-hard",
+    "path": "tasks/t-hard",
+    "tags": [
+     "hard",
+     "parser"
+    ]
+   },
+   {
+    "id": "t-notag",
+    "path": "tasks/t-notag"
+   }
+  ]
+ }
+}

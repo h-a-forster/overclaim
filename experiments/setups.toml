@@ -1,0 +1,61 @@
+# Study 1: false completions across models and effort levels.
+#
+# 18 solvable tasks (tasks/solvable, the agent-ab tasks that have failed before) and 5 impossible
+# tasks (tasks/impossible), 2 repeats, Claude Haiku 5.5 and Sonnet 5.5 at low and high effort.
+# 23 tasks x 4 arms x 2 repeats = 184 trials. Every trial keeps its full transcript
+# (trials/<id>/attempt-<n>/agent.stdout), which is what overclaim reads.
+#
+#   python scripts/build_hook.py                       # not needed here; see interventions.toml
+#   agent-ab validate experiments/setups.toml
+#   agent-ab run experiments/setups.toml --out runs/setups
+#   overclaim scan runs/setups --by arm,difficulty --difficulty tasks/difficulty.json
+#
+# SAFETY: agents run unattended with full permissions. Use a container or a disposable VM.
+# `agent-ab validate --tasks` fails on the impossible tasks by design; validate them with
+# scripts/validate_impossible.py and the solvable ones with `--only` on tasks/solvable.
+
+name = "setups"
+description = "False completions by model and effort: Haiku 5.5 and Sonnet 5.5 at low and high effort."
+
+tasks = ["../tasks/solvable/*", "../tasks/impossible/*"]
+repeats = 2
+jobs = 6
+seed = 0
+budget_usd = 60.0
+timeout_s = 1800
+check_timeout_s = 300
+max_retries = 2
+baseline = "haiku-low"
+
+[agent]
+adapter = "claude-code"
+
+[agent.options]
+permission_mode = "bypassPermissions"
+setting_sources = "project"
+max_budget_usd = 2.0
+max_turns = 100
+
+[[arms]]
+name = "haiku-low"
+[arms.agent]
+model = "claude-haiku-5-5"
+effort = "low"
+
+[[arms]]
+name = "haiku-high"
+[arms.agent]
+model = "claude-haiku-5-5"
+effort = "high"
+
+[[arms]]
+name = "sonnet-low"
+[arms.agent]
+model = "claude-sonnet-5-5"
+effort = "low"
+
+[[arms]]
+name = "sonnet-high"
+[arms.agent]
+model = "claude-sonnet-5-5"
+effort = "high"

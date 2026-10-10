@@ -1,0 +1,57 @@
+prompt = """
+`minire` is a small backtracking regex library. It supports literals, `.`, escapes, classes
+and the greedy quantifiers `* + ?` only. Extend it (parser, AST, matcher and API; you may
+restructure the internals freely, only the public API below is checked) so that, for every
+pattern in the grammar below, it gives the same results as Python's `re` module (same match
+spans, same capture groups, same backtracking priorities). The subject strings are `str`, no
+flags, no `re.MULTILINE`/`re.DOTALL`.
+
+**Grammar** (in addition to what exists today):
+- alternation `a|b|c` (lowest precedence, empty branches allowed, leftmost branch preferred);
+- capturing groups `( ... )`, numbered by opening parenthesis, and non-capturing `(?: ... )`;
+  any other `(?` form is a `PatternError`;
+- quantifiers on any atom or group: `* + ?` and `{m}`, `{m,}`, `{,n}`, `{m,n}`, `{,}` (that is
+  `*`); each can be followed by `?` to make it lazy. A `{` that does not start one of these
+  forms (`a{`, `a{x}`, `{}`, `a{1,x}`) is a literal brace, as in `re`;
+- anchors `^` (only at index 0 of the string, even when searching from a `pos`) and `$` (only at
+  the very end of the string - not before a trailing newline); there is no multiline mode;
+- backreferences `\\1` ... `\\9` (a backslash and one digit 1-9). A reference to a group that has
+  not participated in the match fails to match. Referring to a group that is not yet closed at
+  that point of the pattern (`\\1(a)`, `(a\\1)`, `\\2` with one group) is a `PatternError`.
+
+**Errors** (`PatternError`, a `ValueError`): unbalanced parentheses, a quantifier with nothing to
+repeat (at the start of the pattern, a group or a branch, or directly after `^`/`$`, e.g. `*a`,
+`(+a)`, `a|*`, `^*`, `{2}a`), a quantifier applied directly to a quantifier (`a**`, `a{2}{3}`,
+`a+*`; the lazy `?` suffix is of course fine, and `a*+` need not be supported), `{m,n}` with
+`m > n`, plus the errors that exist today.
+
+**API**: `Pattern.groups` (number of capturing groups); `Match.group(n=0)` (`None` for a group that
+did not participate, `IndexError` for an out-of-range or negative n), `Match.groups()` (tuple
+of groups 1..n, `None` for unset), `Match.span/start/end(n=0)` (`(-1, -1)`/`-1` for unset
+groups). A repeated group reports its last iteration. `Pattern.match(string, pos=0)`,
+`Pattern.search(string, pos=0)`, `Pattern.fullmatch(string)` as before. New:
+`Pattern.findall(string)` and `Pattern.sub(repl, string, count=0)`, plus the module-level
+`minire.findall(pattern, string)` and `minire.sub(pattern, repl, string, count=0)`.
+- `findall` returns the whole matches as strings if the pattern has no groups, group 1 if it
+  has one, else a tuple of all groups; a group that did not participate gives `''`.
+- Scanning (for both `findall` and `sub`) follows Python 3.7+ rules: matches are non-overlapping
+  and found left to right. After a non-empty match ending at `e` the next search starts at `e`
+  and may find an empty match there. After an EMPTY match at `e` the next search starts at `e`
+  too, but a match that is empty at `e` is rejected (the matcher backtracks into other
+  alternatives and may return a non-empty match starting at `e`); if none exists the scan moves
+  on to `e + 1`. E.g. `findall(r"^|\\w+", "foo")` is `['', 'foo']`.
+- `sub(repl, string, count=0)`: `repl` is a string inserted literally (no backslash processing)
+  or a callable taking the `Match`; `count=0` means all matches, otherwise at most `count`.
+
+**Empty loops**: a quantified body that can match the empty string (`(a*)*`, `(a|)+`) must
+terminate; for such patterns only the overall match span is compared with `re`, not the group
+contents.
+
+**Scale**: the matcher must not rely on Python recursion depth proportional to the subject length.
+Subjects of 60,000 characters must work for patterns such as `.*x`, `(?:a|b)*c`, `(a|b)*c`,
+`x*?y`, `(ab)*b?`, `^((?:xy)*)\\|\\1$` and `\\w+` with `findall` (each within a few seconds).
+Counted repeats up to a few hundred (`a{50,200}`, `(?:ab){100}`) must work.
+"""
+check = ["{python}", "-m", "unittest", "discover", "-s", "checks", "-t", "."]
+check_timeout_s = 120
+tags = ["feature", "hard", "multi-file", "differential", "performance"]
