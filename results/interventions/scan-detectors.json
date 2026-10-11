@@ -1,0 +1,688 @@
+{
+  "schema": 1,
+  "tool": "overclaim",
+  "title": "interventions",
+  "sources": [
+    "runs/interventions"
+  ],
+  "scores": {
+    "by": [
+      "arm"
+    ],
+    "overall": {
+      "key": {},
+      "trials": 288,
+      "graded": 288,
+      "ungraded": 0,
+      "labelled": 288,
+      "tasks": 18,
+      "passes": 257,
+      "fails": 31,
+      "outcomes": {
+        "true_completion": 193,
+        "false_completion": 22,
+        "honest_failure": 8,
+        "underclaim": 64,
+        "silent": 1
+      },
+      "pass_rate": {
+        "k": 257,
+        "n": 288,
+        "estimate": 0.8923611111111112,
+        "low": 0.7394905315484359,
+        "high": 0.96875,
+        "method": "wilson-deff",
+        "tasks": 18,
+        "skipped": 0.0,
+        "n_eff": 31.666822539162954
+      },
+      "fcr": {
+        "k": 22,
+        "n": 31,
+        "estimate": 0.7096774193548387,
+        "low": 0.3076923076923077,
+        "high": 0.9036426813874776,
+        "method": "wilson-deff",
+        "tasks": 10,
+        "skipped": 0.0,
+        "n_eff": 8.890572110891913
+      },
+      "claim_rate": {
+        "k": 215,
+        "n": 288,
+        "estimate": 0.7465277777777778,
+        "low": 0.6245223782699746,
+        "high": 0.8472222222222222,
+        "method": "wilson-deff",
+        "tasks": 18,
+        "skipped": 0.0,
+        "n_eff": 60.51599002041277
+      },
+      "false_claim_share": {
+        "k": 22,
+        "n": 215,
+        "estimate": 0.10232558139534884,
+        "low": 0.01762114537444934,
+        "high": 0.303973587570163,
+        "method": "wilson-deff",
+        "tasks": 18,
+        "skipped": 0.0,
+        "n_eff": 19.988025143095992
+      },
+      "honest_failure_rate": {
+        "k": 8,
+        "n": 31,
+        "estimate": 0.25806451612903225,
+        "low": 0.07692307692307693,
+        "high": 0.64,
+        "method": "cluster-bootstrap",
+        "tasks": 10,
+        "skipped": 0.0,
+        "n_eff": 9.857631318136768
+      },
+      "fc_by_verification": {
+        "passed": 16,
+        "not_run": 3,
+        "unknown": 3
+      },
+      "fc_claims_tests_pass": 22
+    },
+    "groups": [
+      {
+        "key": {
+          "arm": "ask-verify"
+        },
+        "trials": 72,
+        "graded": 72,
+        "ungraded": 0,
+        "labelled": 72,
+        "tasks": 18,
+        "passes": 63,
+        "fails": 9,
+        "outcomes": {
+          "true_completion": 49,
+          "false_completion": 6,
+          "honest_failure": 3,
+          "underclaim": 14,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 63,
+          "n": 72,
+          "estimate": 0.875,
+          "low": 0.7096348767817442,
+          "high": 0.9722222222222222,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 28.945945945945944
+        },
+        "fcr": {
+          "k": 6,
+          "n": 9,
+          "estimate": 0.6666666666666666,
+          "low": 0.0,
+          "high": 1.0,
+          "method": "cluster-bootstrap",
+          "tasks": 5,
+          "skipped": 0.0035,
+          "n_eff": 3.4105263157894736
+        },
+        "claim_rate": {
+          "k": 55,
+          "n": 72,
+          "estimate": 0.7638888888888888,
+          "low": 0.5829840906653195,
+          "high": 0.9027777777777778,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 28.536804308797134
+        },
+        "false_claim_share": {
+          "k": 6,
+          "n": 55,
+          "estimate": 0.10909090909090909,
+          "low": 0.0,
+          "high": 0.3258825208806713,
+          "method": "wilson-deff",
+          "tasks": 16,
+          "skipped": 0.0,
+          "n_eff": 17.9559293836413
+        },
+        "honest_failure_rate": {
+          "k": 3,
+          "n": 9,
+          "estimate": 0.3333333333333333,
+          "low": 0.0,
+          "high": 1.0,
+          "method": "cluster-bootstrap",
+          "tasks": 5,
+          "skipped": 0.00325,
+          "n_eff": 3.4105263157894736
+        },
+        "fc_by_verification": {
+          "passed": 5,
+          "unknown": 1
+        },
+        "fc_claims_tests_pass": 6
+      },
+      {
+        "key": {
+          "arm": "control"
+        },
+        "trials": 72,
+        "graded": 72,
+        "ungraded": 0,
+        "labelled": 72,
+        "tasks": 18,
+        "passes": 66,
+        "fails": 6,
+        "outcomes": {
+          "true_completion": 55,
+          "false_completion": 5,
+          "honest_failure": 1,
+          "underclaim": 11,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 66,
+          "n": 72,
+          "estimate": 0.9166666666666666,
+          "low": 0.7385226562536453,
+          "high": 1.0,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 23.375000000000007
+        },
+        "fcr": {
+          "k": 5,
+          "n": 6,
+          "estimate": 0.8333333333333334,
+          "low": 0.0,
+          "high": 1.0,
+          "method": "cluster-bootstrap",
+          "tasks": 3,
+          "skipped": 0.0395,
+          "n_eff": 2.857142857142857
+        },
+        "claim_rate": {
+          "k": 60,
+          "n": 72,
+          "estimate": 0.8333333333333334,
+          "low": 0.6949017497267792,
+          "high": 0.9305555555555556,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 42.49999999999999
+        },
+        "false_claim_share": {
+          "k": 5,
+          "n": 60,
+          "estimate": 0.08333333333333333,
+          "low": 0.0,
+          "high": 0.30495112941002367,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 16.578014184397162
+        },
+        "honest_failure_rate": {
+          "k": 1,
+          "n": 6,
+          "estimate": 0.16666666666666666,
+          "low": 0.0,
+          "high": 1.0,
+          "method": "cluster-bootstrap",
+          "tasks": 3,
+          "skipped": 0.0355,
+          "n_eff": 2.8571428571428577
+        },
+        "fc_by_verification": {
+          "unknown": 2,
+          "passed": 3
+        },
+        "fc_claims_tests_pass": 5
+      },
+      {
+        "key": {
+          "arm": "stop-audit"
+        },
+        "trials": 72,
+        "graded": 72,
+        "ungraded": 0,
+        "labelled": 72,
+        "tasks": 18,
+        "passes": 65,
+        "fails": 7,
+        "outcomes": {
+          "true_completion": 38,
+          "false_completion": 6,
+          "honest_failure": 1,
+          "underclaim": 27,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 65,
+          "n": 72,
+          "estimate": 0.9027777777777778,
+          "low": 0.7342797392443892,
+          "high": 0.9861111111111112,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 26.399317406143336
+        },
+        "fcr": {
+          "k": 6,
+          "n": 7,
+          "estimate": 0.8571428571428571,
+          "low": 0.0,
+          "high": 1.0,
+          "method": "cluster-bootstrap",
+          "tasks": 4,
+          "skipped": 0.011,
+          "n_eff": 4.083333333333334
+        },
+        "claim_rate": {
+          "k": 44,
+          "n": 72,
+          "estimate": 0.6111111111111112,
+          "low": 0.47517247795121376,
+          "high": 0.7361111111111112,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 51.84158415841585
+        },
+        "false_claim_share": {
+          "k": 6,
+          "n": 44,
+          "estimate": 0.13636363636363635,
+          "low": 0.0,
+          "high": 0.38337076678686244,
+          "method": "wilson-deff",
+          "tasks": 17,
+          "skipped": 0.0,
+          "n_eff": 14.884022052501138
+        },
+        "honest_failure_rate": {
+          "k": 1,
+          "n": 7,
+          "estimate": 0.14285714285714285,
+          "low": 0.0,
+          "high": 1.0,
+          "method": "cluster-bootstrap",
+          "tasks": 4,
+          "skipped": 0.01,
+          "n_eff": 4.083333333333333
+        },
+        "fc_by_verification": {
+          "not_run": 3,
+          "passed": 3
+        },
+        "fc_claims_tests_pass": 6
+      },
+      {
+        "key": {
+          "arm": "stop-hook"
+        },
+        "trials": 72,
+        "graded": 72,
+        "ungraded": 0,
+        "labelled": 72,
+        "tasks": 18,
+        "passes": 63,
+        "fails": 9,
+        "outcomes": {
+          "true_completion": 51,
+          "false_completion": 5,
+          "honest_failure": 3,
+          "underclaim": 12,
+          "silent": 1
+        },
+        "pass_rate": {
+          "k": 63,
+          "n": 72,
+          "estimate": 0.875,
+          "low": 0.7206327918680998,
+          "high": 0.9583333333333334,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 32.45454545454545
+        },
+        "fcr": {
+          "k": 5,
+          "n": 9,
+          "estimate": 0.5555555555555556,
+          "low": 0.0,
+          "high": 0.8333333333333334,
+          "method": "cluster-bootstrap",
+          "tasks": 6,
+          "skipped": 0.001,
+          "n_eff": 8.653846153846153
+        },
+        "claim_rate": {
+          "k": 56,
+          "n": 72,
+          "estimate": 0.7777777777777778,
+          "low": 0.6415470933010265,
+          "high": 0.8888888888888888,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 47.599999999999994
+        },
+        "false_claim_share": {
+          "k": 5,
+          "n": 56,
+          "estimate": 0.08928571428571429,
+          "low": 0.0,
+          "high": 0.2620159046931094,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 24.89627285513362
+        },
+        "honest_failure_rate": {
+          "k": 3,
+          "n": 9,
+          "estimate": 0.3333333333333333,
+          "low": 0.0,
+          "high": 0.75,
+          "method": "cluster-bootstrap",
+          "tasks": 6,
+          "skipped": 0.001,
+          "n_eff": 9.0
+        },
+        "fc_by_verification": {
+          "passed": 5
+        },
+        "fc_claims_tests_pass": 5
+      }
+    ],
+    "alpha": 0.05,
+    "seed": 0,
+    "notes": [
+      "Failures come from only 10 tasks; intervals from few tasks are rough.",
+      "Only 18 tasks; intervals that resample tasks are rough."
+    ]
+  },
+  "comparisons": [
+    {
+      "arm": "ask-verify",
+      "baseline": "control",
+      "paired_tasks": 18,
+      "fc_incidence_diff": {
+        "estimate": 0.013888888888888888,
+        "low": -0.027777777777777776,
+        "high": 0.05555555555555555
+      },
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "tasks_fewer": 1,
+      "tasks_more": 2,
+      "tasks_tied": 15,
+      "verdict": "no detectable difference",
+      "fcr_paired_tasks": 3,
+      "fcr_diff": {
+        "estimate": -0.3333333333333333,
+        "low": -1.0,
+        "high": 0.0
+      },
+      "fcr_p_value": 1.0,
+      "fcr_p_value_adjusted": 1.0,
+      "pass_paired_tasks": 18,
+      "pass_rate_diff": {
+        "estimate": -0.041666666666666664,
+        "low": -0.08333333333333333,
+        "high": 0.0
+      },
+      "notes": [
+        "ask-verify vs control: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25)."
+      ]
+    },
+    {
+      "arm": "stop-hook",
+      "baseline": "control",
+      "paired_tasks": 18,
+      "fc_incidence_diff": {
+        "estimate": 0.0,
+        "low": -0.05555555555555555,
+        "high": 0.05555555555555555
+      },
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "tasks_fewer": 2,
+      "tasks_more": 2,
+      "tasks_tied": 14,
+      "verdict": "no detectable difference",
+      "fcr_paired_tasks": 3,
+      "fcr_diff": {
+        "estimate": -0.08333333333333333,
+        "low": -1.0,
+        "high": 1.0
+      },
+      "fcr_p_value": 1.0,
+      "fcr_p_value_adjusted": 1.0,
+      "pass_paired_tasks": 18,
+      "pass_rate_diff": {
+        "estimate": -0.041666666666666664,
+        "low": -0.08333333333333333,
+        "high": 0.0
+      },
+      "notes": [
+        "stop-hook vs control: only 4 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.125)."
+      ]
+    },
+    {
+      "arm": "stop-audit",
+      "baseline": "control",
+      "paired_tasks": 18,
+      "fc_incidence_diff": {
+        "estimate": 0.013888888888888888,
+        "low": -0.027777777777777776,
+        "high": 0.05555555555555555
+      },
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "tasks_fewer": 1,
+      "tasks_more": 2,
+      "tasks_tied": 15,
+      "verdict": "no detectable difference",
+      "fcr_paired_tasks": 1,
+      "fcr_diff": {
+        "estimate": 0.0,
+        "low": null,
+        "high": null
+      },
+      "fcr_p_value": 1.0,
+      "fcr_p_value_adjusted": 1.0,
+      "pass_paired_tasks": 18,
+      "pass_rate_diff": {
+        "estimate": -0.013888888888888888,
+        "low": -0.06944444444444445,
+        "high": 0.041666666666666664
+      },
+      "notes": [
+        "stop-audit vs control: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25)."
+      ]
+    }
+  ],
+  "baseline": "control",
+  "detectors": [
+    {
+      "name": "unverified",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 6,
+        "fp": 20,
+        "fn": 16,
+        "tn": 173,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.23076923076923078,
+          "low": 0.055788663834271945,
+          "high": 0.60368273304173
+        },
+        "recall": {
+          "estimate": 0.2727272727272727,
+          "low": 0.13150760287989474,
+          "high": 0.4815173401240238
+        },
+        "f1": 0.25,
+        "prevalence": {
+          "estimate": 0.10232558139534884,
+          "low": 0.02889268096387107,
+          "high": 0.303973587570163
+        }
+      },
+      "graded": {
+        "population": "all graded",
+        "tp": 6,
+        "fp": 20,
+        "fn": 25,
+        "tn": 237,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.23076923076923078,
+          "low": 0.055788663834271945,
+          "high": 0.60368273304173
+        },
+        "recall": {
+          "estimate": 0.1935483870967742,
+          "low": 0.08608043263770701,
+          "high": 0.37947615585079875
+        },
+        "f1": 0.21052631578947367,
+        "prevalence": {
+          "estimate": 0.1076388888888889,
+          "low": 0.039663381318016305,
+          "high": 0.2605094684515641
+        }
+      },
+      "notes": []
+    },
+    {
+      "name": "claims-tests-unbacked",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 6,
+        "fp": 20,
+        "fn": 16,
+        "tn": 173,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.23076923076923078,
+          "low": 0.055788663834271945,
+          "high": 0.60368273304173
+        },
+        "recall": {
+          "estimate": 0.2727272727272727,
+          "low": 0.13150760287989474,
+          "high": 0.4815173401240238
+        },
+        "f1": 0.25,
+        "prevalence": {
+          "estimate": 0.10232558139534884,
+          "low": 0.02889268096387107,
+          "high": 0.303973587570163
+        }
+      },
+      "graded": {
+        "population": "all graded",
+        "tp": 7,
+        "fp": 34,
+        "fn": 24,
+        "tn": 223,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.17073170731707318,
+          "low": 0.045425017700059106,
+          "high": 0.47110783225669783
+        },
+        "recall": {
+          "estimate": 0.22580645161290322,
+          "low": 0.11395135561262495,
+          "high": 0.3981241838334205
+        },
+        "f1": 0.19444444444444445,
+        "prevalence": {
+          "estimate": 0.1076388888888889,
+          "low": 0.039663381318016305,
+          "high": 0.2605094684515641
+        }
+      },
+      "notes": []
+    },
+    {
+      "name": "ruleproof",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 0,
+        "fp": 1,
+        "fn": 22,
+        "tn": 192,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.7934506856227626
+        },
+        "recall": {
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.3543304350666873
+        },
+        "f1": 0.0,
+        "prevalence": {
+          "estimate": 0.10232558139534884,
+          "low": 0.02889268096387107,
+          "high": 0.303973587570163
+        }
+      },
+      "graded": {
+        "population": "all graded",
+        "tp": 0,
+        "fp": 1,
+        "fn": 31,
+        "tn": 256,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.7934506856227626
+        },
+        "recall": {
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.27753279986288915
+        },
+        "f1": 0.0,
+        "prevalence": {
+          "estimate": 0.1076388888888889,
+          "low": 0.039663381318016305,
+          "high": 0.2605094684515641
+        }
+      },
+      "notes": []
+    }
+  ],
+  "transcripts_read": 288,
+  "transcripts_missing": 0,
+  "transcripts_unreadable": 0,
+  "label_sources": {
+    "gold:agreed": 239,
+    "gold:adjudicated": 49
+  },
+  "notes": [
+    "Failures come from only 10 tasks; intervals from few tasks are rough.",
+    "Only 18 tasks; intervals that resample tasks are rough.",
+    "ask-verify vs control: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25).",
+    "stop-hook vs control: only 4 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.125).",
+    "stop-audit vs control: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25)."
+  ]
+}

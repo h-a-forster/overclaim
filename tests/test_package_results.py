@@ -96,3 +96,36 @@ def test_scrubber_replaces_home_and_user():
     scrub = pr.scrubber("dev", PureWindowsPath("C:/Users/dev"))
     assert scrub("C:\\Users\\dev\\x and /c/Users/dev/y by dev") == "~\\x and ~/y by user"
     assert scrub("devops developer") == "devops developer"
+
+
+def test_redact_stream_tolerates_odd_events():
+    odd = '{"type": "user", "message": "plain"}\n{"type": "user", "message": {"content": ["x"]}}\n'
+    text, n = pr.redact_stream(odd + stream("ls ~"))
+    assert n == 1
+    assert '"message": "plain"' in text
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "ls -la /c/Users/dev/AppData/Local/Temp/ | head",
+        "ls $TEMP",
+        "dir %TEMP%",
+        "ls /tmp",
+        'Get-ChildItem -Recurse -Filter m.py -Path "C:\\Users\\dev\\AppData\\Local\\Temp"',
+    ],
+)
+def test_reads_outside_flags_temp_root_listing(command):
+    assert pr.reads_outside("Bash", {"command": command}, WS)
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        "python -c \"import os; print(os.environ.get('TEMP', '/tmp'))\"",
+        "echo $TEMP",
+        '"C:/Users/dev/AppData/Roaming/uv/python/cpython-3.8-windows/python.exe" -m unittest',
+    ],
+)
+def test_reads_outside_ignores_temp_mentions_and_uv_pythons(command):
+    assert not pr.reads_outside("Bash", {"command": command}, WS)

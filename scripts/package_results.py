@@ -35,16 +35,21 @@ FILES = ("prompt.md", "agent.stdout", "diff.patch", "check.stdout", "check.stder
 REDACTED = "[redacted: output of a tool call that read outside the trial workspace]"
 SHELL_TOOLS = {"Bash", "PowerShell"}
 PATH_KEYS = ("file_path", "path", "notebook_path")
-# Temp directories (the trial workspace, the agent's scratchpad, /tmp) are part of the trial;
-# running an installed interpreter and a bare `cd ~` read nothing.
+# Paths inside a temp directory (the trial workspace, the agent's scratchpad, /tmp/x) are part
+# of the trial; running an installed interpreter and a bare `cd ~` read nothing. The temp root
+# itself is not: listing it shows other programs' directories.
+TEMP_ROOT = r"(?:AppData[\\/]Local[\\/]Temp|\$TEMP|\$env:TEMP|%TEMP%|(?<![\w.])/tmp)"
 TEMP = re.compile(
     r"\bcd\s+~(?=[\s;&|]|$)"
-    r"|\S*(?:AppData[\\/]Local[\\/](?:Temp|Programs)|[\\/]\.venv[\\/]|\$TEMP|\$env:TEMP|%TEMP%"
-    r"|/tmp\b)\S*",
+    rf"|\S*(?:{TEMP_ROOT}[\\/]+[^\s'\"\\/]|AppData[\\/]Local[\\/]Programs"
+    r"|AppData[\\/]Roaming[\\/]uv[\\/]python|[\\/]\.venv[\\/])\S*",
     re.IGNORECASE,
 )
 OUTSIDE = re.compile(
-    r"(?:^|[\s'\"=(])(?:~|\$HOME|\$env:USERPROFILE|%USERPROFILE%)(?=[\\/\s'\")]|$)"
+    r"\b(?:ls|dir|find|tree|du|cd|Get-ChildItem|gci|rg|grep\s+-\w*r\w*)\s+"
+    r"(?:-\S+(?:\s+[^\s'\"-]\S*)?\s+)*"
+    rf"['\"]?{TEMP_ROOT}[\\/]*['\"]?(?=[\s)|;&]|$)"
+    r"|(?:^|[\s'\"=(])(?:~|\$HOME|\$env:USERPROFILE|%USERPROFILE%)(?=[\\/\s'\")]|$)"
     r"|(?:^|[\s'\"=(])(?:[A-Za-z]:[\\/]|/(?:[a-z]/|mnt/[a-z]/)?)(?:Users|home|ProgramData)\b"
     r"|\b(?:find|ls|dir|du|tree|Get-ChildItem|gci|rg|grep\s+-\w*r\w*)\s+(?:-\S+\s+)*"
     r"['\"]?(?:/|[A-Za-z]:[\\/]?|/mnt/[a-z]/?)['\"]?(?=\s|$)",
@@ -84,6 +89,11 @@ def reads_outside(name: str, tool_input: dict, workspace: str) -> bool:
     return False
 
 
+def _content(event: dict) -> object:
+    message = event.get("message")
+    return message.get("content") if isinstance(message, dict) else None
+
+
 def redact_stream(text: str) -> tuple[str, int]:
     """Blank the results of tool calls that read outside the workspace: (text, redactions)."""
     events: list[object] = []
@@ -100,7 +110,7 @@ def redact_stream(text: str) -> tuple[str, int]:
             continue
         if event.get("type") == "system" and event.get("subtype") == "init":
             workspace = str(event.get("cwd") or "")
-        content = (event.get("message") or {}).get("content")
+        content = _content(event)
         if event.get("type") == "assistant" and isinstance(content, list):
             for block in content:
                 if (
@@ -112,9 +122,13 @@ def redact_stream(text: str) -> tuple[str, int]:
     count, out = 0, []
     for event in events:
         if isinstance(event, dict) and event.get("type") == "user":
-            content = (event.get("message") or {}).get("content")
+            content = _content(event)
             for block in content if isinstance(content, list) else []:
-                if block.get("type") == "tool_result" and block.get("tool_use_id") in flagged:
+                if (
+                    isinstance(block, dict)
+                    and block.get("type") == "tool_result"
+                    and block.get("tool_use_id") in flagged
+                ):
                     block["content"] = REDACTED
                     for key in ("tool_use_result", "toolUseResult"):
                         if key in event:

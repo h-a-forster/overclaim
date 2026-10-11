@@ -1,4 +1,4 @@
-"""Merge two LLM label files into gold labels, using human adjudications where they disagree.
+"""Merge two LLM label files into gold labels, using adjudications where they disagree.
 
     python scripts/gold_labels.py A.jsonl B.jsonl --adjudicated adj.jsonl --out gold.jsonl
 
