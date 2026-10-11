@@ -16,6 +16,13 @@ It applies the same rules `overclaim scan` uses to measure false completions: th
 message is labelled by `overclaim.claims.classify`, and verification is read from the
 transcript by `overclaim.evidence.assess` (see [formats.md](formats.md)).
 
+**What to expect.** The hook catches one failure: claiming done without a passing test run
+after the last edit. It does not catch the more common one, where the agent's own tests pass
+but miss a requirement. In study 2 (Claude Haiku 5.5, 288 trials), neither mode reduced false
+completions: claim mode blocked 10 of 72 trials, and the arm's 5 false completions all had
+passing tests; audit mode blocked every trial, cost 44% more per trial than control, and 6 of
+7 failures still ended with a "done" claim. See [results.md](results.md#study-2-interventions).
+
 ## Install
 
 Install `overclaim` so that it is on `PATH`, for example:
