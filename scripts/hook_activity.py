@@ -26,7 +26,7 @@ from overclaim.evidence import is_test_command  # noqa: E402
 EDIT_TOOLS = {"Edit", "Write", "MultiEdit"}
 SHELL_TOOLS = {"Bash", "PowerShell"}
 SCRATCH = re.compile(r"(?:^|[\\/])tmp[\\/]", re.IGNORECASE)
-ABSOLUTE = re.compile(r"^(?:[a-z]:|/)")
+ABSOLUTE = re.compile(r"^(?:[a-z]:|/|~)")  # ~ appears in published (scrubbed) transcripts
 
 
 def after_block(stdout: Path) -> dict[str, bool]:
@@ -87,7 +87,8 @@ def main() -> None:
         print(
             f"| {arm} | {len(rows)} | {sum(r['passed'] for r in rows) / len(rows):.1%} "
             f"| ${statistics.mean(costs):.3f} ({len(costs)} with cost) "
-            f"| {statistics.mean(r['turns'] or 0 for r in rows):.1f} | {len(blocked)} "
+            f"| {statistics.mean(r['turns'] for r in rows if r.get('turns') is not None):.1f} "
+            f"| {len(blocked)} "
             f"| {sum(r['passed'] for r in blocked)} | {sum(r['tests'] for r in blocked)} "
             f"| {sum(r['edits'] for r in blocked)} "
             f"| {sum(r['scratch_edits'] and not r['edits'] for r in blocked)} |"

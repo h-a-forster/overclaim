@@ -5,10 +5,13 @@
 Copies run.json and trials.jsonl, and writes transcripts.tar.gz with each trial's prompt,
 transcript, diff and hidden-check output. Two privacy steps run on every packaged file:
 
-- The output of any tool call that read outside the trial workspace (`~`, `$HOME`, a filesystem
-  root, or an absolute path under a home or system directory) is replaced with a redaction note.
-  Agents with full permissions sometimes search the disk; what they find there is not part of
-  the study.
+- Tool outputs are kept only where the scan needs them or they are clearly part of the trial:
+  test commands (as `overclaim.evidence.is_test_command` recognises them) that do not also
+  inspect the host or read outside the workspace, and file tools (`Read`, `Edit`, `Grep`, ...)
+  on paths inside the trial workspace. Every other tool output (other shell commands, subagent
+  reports, web fetches, reads outside the workspace) is replaced with a redaction note. Agents
+  run with full permissions and sometimes list directories, print PATH or search the disk;
+  what they see there is not part of the study. Redaction changes no evidence field.
 - Absolute home-directory paths and the local user name become neutral placeholders.
 
 `--deny-list FILE` (one word per line) makes packaging fail if any listed word survives, as a
@@ -31,10 +34,26 @@ import tarfile
 from collections.abc import Callable
 from pathlib import Path, PurePath
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+
+from overclaim.evidence import is_test_command  # noqa: E402
+
 FILES = ("prompt.md", "agent.stdout", "diff.patch", "check.stdout", "check.stderr", "record.json")
-REDACTED = "[redacted: output of a tool call that read outside the trial workspace]"
+REDACTED = "[redacted: tool output other than a test run or a file operation in the workspace]"
 SHELL_TOOLS = {"Bash", "PowerShell"}
+FILE_TOOLS = {"Read", "Edit", "Write", "MultiEdit", "NotebookEdit", "Grep", "Glob", "LS"}
 PATH_KEYS = ("file_path", "path", "notebook_path")
+# Commands that print host state (installed programs, processes, environment), matched in
+# command position after heredoc bodies are removed, so code that mentions `where` does not count.
+HOST_INSPECT = re.compile(
+    r"(?:^|[;&|(`]|\$\()\s*(?:sudo\s+)?"
+    r"(?:which|where|where\.exe|whereis|ps|tasklist|printenv|Get-Process|uname|whoami|hostname"
+    r"|systeminfo|history|pip\s+(?:list|freeze)|uv\s+python\s+list|Get-Command"
+    r"|env\s*(?:$|[|;&>])|echo\b[^|;&\n]*(?:\$PATH|\$env:PATH|%PATH%))(?![\w-])",
+    re.MULTILINE,
+)
+HEREDOC = re.compile(r"<<-?\s*['\"]?(\w+)['\"]?[^\n]*\n.*?^\s*\1\s*$", re.DOTALL | re.MULTILINE)
+ABSOLUTE = re.compile(r"^(?:[A-Za-z]:|/|~|\$HOME|\$env:|%)")
 # Paths inside a temp directory (the trial workspace, the agent's scratchpad, /tmp/x) are part
 # of the trial; running an installed interpreter and a bare `cd ~` read nothing. The temp root
 # itself is not: listing it shows other programs' directories.
@@ -89,13 +108,37 @@ def reads_outside(name: str, tool_input: dict, workspace: str) -> bool:
     return False
 
 
+def path_outside(tool_input: dict, workspace: str) -> bool:
+    """Whether a file tool names an absolute path outside the trial workspace."""
+    ws = workspace.replace("\\", "/").lower().rstrip("/")
+    for key in (*PATH_KEYS, "pattern"):
+        value = str(tool_input.get(key, "")).replace("\\", "/").lower()
+        if ABSOLUTE.match(value) and not (ws and value.startswith(ws)):
+            return True
+    return False
+
+
+def keep_output(name: str, tool_input: dict, workspace: str) -> bool:
+    """Whether a tool call's output may be published (see the module docstring)."""
+    if name in SHELL_TOOLS:
+        command = str(tool_input.get("command", ""))
+        return (
+            is_test_command(command)
+            and not HOST_INSPECT.search(HEREDOC.sub("<<heredoc", command))
+            and not reads_outside(name, tool_input, workspace)
+        )
+    if name in FILE_TOOLS:
+        return not path_outside(tool_input, workspace)
+    return name == "TodoWrite"
+
+
 def _content(event: dict) -> object:
     message = event.get("message")
     return message.get("content") if isinstance(message, dict) else None
 
 
 def redact_stream(text: str) -> tuple[str, int]:
-    """Blank the results of tool calls that read outside the workspace: (text, redactions)."""
+    """Blank the results of tool calls whose output may not be published: (text, redactions)."""
     events: list[object] = []
     flagged: set[str] = set()
     workspace = ""
@@ -116,7 +159,7 @@ def redact_stream(text: str) -> tuple[str, int]:
                 if (
                     isinstance(block, dict)
                     and block.get("type") == "tool_use"
-                    and reads_outside(block.get("name", ""), block.get("input") or {}, workspace)
+                    and not keep_output(block.get("name", ""), block.get("input") or {}, workspace)
                 ):
                     flagged.add(block.get("id"))
     count, out = 0, []

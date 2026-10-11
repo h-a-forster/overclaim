@@ -203,6 +203,10 @@ would without the hook, and writes one line starting with `overclaim hook:` to s
   directories, or a relative path without an extension (`Makefile`). Logs, data and scratch
   output (`> out.txt`, `> result.json`, `> /tmp/repro.py`, `$TMPDIR/...`) do not count.
   Files written by scripts or `python -c` are not seen.
+- **Deletions are not edits**: `rm`, `del`, `Remove-Item`, `git rm` and similar shell
+  deletions do not reset verification. A source file deleted after the last passing test run
+  leaves the evidence `passed`; study 2 has one such false completion
+  (`money-decimal-rounding__ask-verify__r0`).
 - **Outcomes**: the exit code decides when it is the test runner's own. When a pipe or a
   later command hides it, the runner's summary line in the output decides; if there is none,
   the outcome is `unknown` and the hook asks for a visible run.

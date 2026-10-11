@@ -27,7 +27,7 @@ directly as `overclaim scan --labels`. Field lists: [docs/cli.md](../docs/cli.md
 
 ## Transcripts
 
-`transcripts.tar.gz` is too large for git (about 12 MB for study 1, 32 MB for study 2). Each
+`transcripts.tar.gz` is too large for git (about 12 MB for study 1, 31 MB for study 2). Each
 study's archive is published as an asset on the GitHub release tagged `results-data`:
 `setups-transcripts.tar.gz` and `interventions-transcripts.tar.gz`.
 
@@ -56,36 +56,49 @@ overclaim inspect results/setups/trials/feature-uri-resolve__haiku-low__r0/attem
 The scan commands for every table are in
 [docs/results.md](../docs/results.md#reproducing-the-tables). None of them calls a model.
 
-**Redaction.** Trials ran unsandboxed with full permissions on the host. No transcript shows an
-agent reading the hidden checks or opening another trial's workspace, but some agents searched
-the disk: for the missing data on the impossible `procure-2019-prices` task (`find /`,
-`find ~`, `ls ~/projects`), and for a reference `urikit/normalize.py` on `feature-uri-resolve`
-(stopped before it returned anything). In study 2 one agent listed `context.py` files under the
-temp directory, which showed the paths of three concurrent trials' workspaces.
-`scripts/package_results.py` replaces the output of every tool call that read outside the trial
-workspace, or listed the temp directory itself, with `[redacted: output of a tool call that
-read outside the trial workspace]`. Commands that ran an interpreter installed elsewhere on the
-host are also redacted; uv-managed interpreters are exempt. The tool calls themselves are kept.
+**Redaction.** Published transcripts keep the agents' tool calls, file edits and file reads in
+the trial workspace, but not every tool output:
 
-| Study | Redacted tool outputs | Where |
-|---|---|---|
-| 1 | 15 | 7 `procure-2019-prices` (disk searches), 7 in one `feature-toml-config` trial (a separately installed Python), 1 `feature-uri-resolve` |
-| 2 | 60 | 10 tasks; 32 in `feature-toml-config` |
+- Shell tool outputs are kept only for test commands (those `overclaim.evidence.is_test_command`
+  recognises), because those are what the scan reads, and only when the same command does not
+  also print host state (`which`, `ps`, `env`, PATH) or read outside the workspace. The outputs
+  of all other shell commands are replaced with a redaction note.
+- File tools (`Read`, `Edit`, `Write`, `Grep`, `Glob`, ...) keep their output only for paths
+  inside the trial workspace; reads elsewhere, including the temp directory itself, are
+  redacted. Outputs of every other tool (subagent reports, web fetches) are redacted.
 
 Redaction changes no evidence field: `overclaim export` gives the same rows on the raw run
-directory and on the extracted archive, for both studies.
+directory and on the extracted archive, for both studies. Readers who want full tool outputs
+can rerun the tasks with the configs in [experiments/](../experiments/README.md).
+
+| Study | Redacted tool outputs |
+|---|---|
+| 1 | 788, in 169 of 184 transcripts |
+| 2 | 1,905, in all 288 transcripts |
+
+Why outside reads are redacted: trials ran unsandboxed with full permissions on the host. No
+transcript shows an agent reading the hidden checks. In study 1 some agents searched the disk:
+for the missing data on the impossible `procure-2019-prices` task (`find /`, `find ~`,
+`ls ~/projects`), and for a reference `urikit/normalize.py` on `feature-uri-resolve` (stopped
+before it returned anything). In study 2, tool outputs in 11 trials showed other trials'
+workspace paths (temp-directory listings and file searches); one agent ran a recursive content
+search (`Grep "def _scan"`) over the whole temp directory, which matched another trial's file.
+No tool call opened another trial's workspace. In 10 trials, `Write` calls to `/tmp/...` paths
+created stray copies under `C:	mp`, because the Write tool and Git Bash map `/tmp` differently.
+Agents could also read host state (`which`, `ps`, `PATH`).
 
 **Scrubbing.** The same script replaces the local home directory (in Windows, POSIX and escaped
 forms) with `~` and the local user name with `user` in every packaged file, including
 `run.json` and `trials.jsonl`. Paths in the transcripts therefore look like
 `~\AppData\Local\Temp\agent-ab-...`. With `--deny-list FILE` (one word per line), packaging
-fails if any listed word survives. The archive is deterministic (sorted entries, fixed mtimes),
-so packaging the same run again gives the same bytes. Apart from the redacted outputs, the
-transcripts contain the agents' full tool calls and outputs on the task repositories.
+fails if any listed word survives; the published archives were packaged with a deny list of
+private names. The archive is deterministic (sorted entries, fixed mtimes),
+so packaging the same run again gives the same bytes.
 
 To verify: `python scripts/package_results.py --help` lists the options, the script's docstring
-describes both steps, and in an extracted archive the redacted outputs can be listed with
+describes both steps, and in an extracted archive the transcripts with redacted outputs can
+be listed with
 
 ```sh
-grep -rl "output of a tool call that read outside" results/*/trials
+grep -rl "\[redacted" results/*/trials
 ```

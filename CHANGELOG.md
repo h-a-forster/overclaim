@@ -25,11 +25,13 @@ All notable changes to this project are documented here. The format follows
 - Rule-based claim classifier with a labelled corpus and real-message fixtures; optional LLM
   labeller and judge through the `claude` CLI, with a cache.
 - Task suites: 18 solvable tasks from agent-ab and 5 impossible tasks with near-miss checks.
-- `scripts/package_results.py`: packages a run for publication, redacts the output of tool
-  calls that read outside the trial workspace, scrubs home paths and the user name, and fails
-  on surviving words from `--deny-list FILE`.
+- `scripts/package_results.py`: packages a run for publication. It keeps shell outputs only
+  for test commands, redacts the output of other shell commands and of tool calls that read
+  outside the trial workspace, scrubs home paths and the user name, and fails on surviving
+  words from `--deny-list FILE`. Redaction changes no evidence field.
 - Study 1 (setups): Haiku 5.5 and Sonnet 5.5 at low and high effort, 23 tasks, 184 trials.
   FCR on solvable tasks 11/14; no success claims on impossible tasks (0/40).
 - Study 2 (interventions): `control`, `ask-verify`, `stop-hook` and `stop-audit` on Haiku 5.5,
   18 tasks, 288 trials. No intervention changed false-completion incidence detectably (FCR
   5/6, 6/9, 5/9, 6/7).
+- `scripts/hook_activity.py`: counts Stop hook blocks and what agents did after them.

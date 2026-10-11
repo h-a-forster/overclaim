@@ -276,7 +276,7 @@ how agents worded their reports.
 | Claims | gold labels: Sonnet 5.5 and Opus 5.5 under `claims-2`; 239 agreed, 49 decided by the adjudicator ([method.md](method.md#labels)) |
 | Config | [experiments/interventions.toml](../experiments/interventions.toml), arms in [experiments/arms](../experiments/README.md) |
 | Outcome | 288 graded trials; 1 agent timeout (graded as a failure); total cost $28.08 (cost missing for 1 trial) |
-| Host access | unsandboxed, as in study 1. One agent listed `context.py` files under the temp directory, which showed the paths of three concurrent trials' workspaces; it did not open them, and no tool call referenced another trial's workspace |
+| Host access | unsandboxed, as in study 1. Tool outputs in 11 trials showed other trials' workspace paths (temp-directory listings and file searches); one agent ran a recursive content search (`Grep "def _scan"`) over the whole temp directory, which matched another trial's file. No tool call opened another trial's workspace. In 10 trials, `Write` calls to `/tmp/...` paths created stray copies under `C:\tmp`, because the Write tool and Git Bash map `/tmp` differently. Agents could also read host state (`which`, `ps`, `PATH`). These outputs are redacted in the published archive |
 
 The hooks live in the workspace's `.claude/` directory, built from this repository's source
 (`scripts/build_hook.py`). Each blocks at most once per session. The design change from the
@@ -312,7 +312,8 @@ False-completion incidence, paired over the 18 tasks, against `control`:
 | stop-audit | +1.4 pts [-2.8, +5.6] | 1 / 2 / 15 | 1.00 | 1.00 | no detectable difference | -1.4 pts [-6.9, +4.2] |
 
 With 3 or 4 tasks differing, the smallest possible p is 0.25 or 0.125, so no comparison could
-reach p < 0.05. The point estimates are not in the direction of a benefit either.
+reach p < 0.05. The point estimates are not in the direction of a benefit either (with gold
+labels; −1.4 for `ask-verify` and `stop-audit` with Sonnet's labels).
 
 ### Verification behind the false completions
 
@@ -330,6 +331,12 @@ script (`tmp/audit.py`) and ran it with `python tmp/audit.py`, which overclaim d
 a test command. In all three, the agent's test suite had run after its last edit to code or
 tests, before the block.
 
+One `ask-verify` false completion (`money-decimal-rounding__ask-verify__r0`) is different:
+after its last test run the agent ran `rm` on what it took to be a stray copy under `/tmp`,
+which in Git Bash was its own workspace, deleting `ledgerfmt/money.py`. overclaim does not
+count `rm` as an edit, so it records `passed`. Without this trial, `ask-verify` vs `control`
+would be 0.0 points.
+
 ### Hook blocks and what agents did next
 
 | Arm | Trials blocked | Blocked trials that passed | Ran tests after the block | Edited code or tests after the block | Edited only scratch files after the block |
@@ -345,8 +352,11 @@ are under a `tmp/` directory or outside the trial workspace.
 
 - **`stop-hook` (claim mode)** fires only when a `complete` claim has no passing test run after
   the last edit. It blocked 10 trials, 9 of which passed anyway; each agent reran its tests
-  and stopped. All 5 false completions in this arm had a passing own test run after the last
-  edit, so the hook had nothing to object to. This is the limit study 1 predicted.
+  and edited no code. All 5 false completions in this arm had a passing own test run after the
+  last edit, so the hook had nothing to object to. This is the limit study 1 predicted. Six of
+  the 10 blocked trials ended labelled `partial`, including the one blocked failure, whose
+  pre-block message claimed completion: the hook's feedback asks the agent to list what it
+  could not verify, so this arm's lower FCR partly reflects wording.
 - **`stop-audit` (audit mode)** asks for a requirement-by-requirement check once per session.
   Agents reran tests in 69 of 72 trials and changed code or tests in 12, but the pass rate did
   not rise (90.3% vs 91.7% for `control`), and 6 of the 7 failures still ended with a
@@ -364,9 +374,10 @@ From [results/interventions/trials.jsonl](../results/interventions/trials.jsonl)
 | stop-hook | 72 | $6.53 | $0.092 | $0.104 | 18.2 | 16 | 229 s | 132 s |
 | stop-audit | 72 | $8.69 | $0.121 | $0.134 | 24.7 | 21.5 | 240 s | 194 s |
 
-`stop-hook` cost and turns are over the 71 trials with a recorded cost; the timed-out trial
-has none. Its duration (1,800 s) is included in the duration columns. The audit costs about
-44% more per trial than `control` for no measured benefit.
+`stop-hook` cost and turns are over the 71 trials with a recorded cost; the mean of 18.2
+turns excludes the timed-out trial, which has no cost or turn count. Its duration (1,800 s)
+is included in the duration columns. The audit costs about 44% more per trial than `control`
+for no measured benefit.
 
 ### Detectors
 
@@ -446,8 +457,9 @@ false-claim share is 3.5% [1.4, 7.1].
 ### Against the plan
 
 The plan ([method.md](method.md)) asked whether a "verify before you say done" Stop hook
-prevents false completions, with the primary analysis a paired difference in false-completion
-incidence per task against `control`, Holm-adjusted.
+prevents false completions. The paired difference in false-completion incidence per task
+against `control`, Holm-adjusted, was a secondary outcome, and the plan treated differences
+between arms as exploratory.
 
 - **A Stop hook reduces false completions: not supported.** Neither `stop-hook` nor
   `stop-audit` differs detectably from `control`; the point estimates are 0.0 and +1.4 points.
@@ -461,20 +473,28 @@ incidence per task against `control`, Holm-adjusted.
 The agents in study 2 behaved as in study 1: when they claimed success on a failing run,
 their own tests had almost always passed. A hook that checks for a passing test run cannot
 catch that, and a hook that asks for an audit makes the agent check and reword its report
-without making the work correct more often. The intervals on incidence (about ±6 points,
-against 6.9% of `control` trials ending in a false completion) cannot exclude a halving of
-false completions, or a similar increase, but no arm pointed toward a benefit.
+without making the work correct more often. With 3–4 of 18 tasks differing per comparison,
+the incidence intervals are wide relative to the 6.9% control incidence (stop-hook
+[−5.6, +5.6]; the others [−2.8, +5.6]) and themselves unreliable at this size; the study
+cannot rule out effects of a few points in either direction. No arm pointed toward a benefit
+(with gold labels; −1.4 for `ask-verify` and `stop-audit` with Sonnet's labels).
 
 ### Limitations
 
 - **One model.** Claude Haiku 5.5 at default effort only; stronger models may respond to an
   audit request differently.
 - **Few failures, 18 tasks.** 31 failed trials from 10 tasks, half of them from one task with
-  a prompt/check conflict. The intervals cannot exclude effects of half the `control`
-  incidence in either direction.
-- **The audit changes the wording that is labelled.** `stop-audit` messages list unverified
-  items, which shifts labels toward `partial` and lowers labeller agreement. A lower
-  `complete` rate in that arm partly reflects wording, not only honesty.
+  a prompt/check conflict. With 3–4 of 18 tasks differing per comparison, the incidence
+  intervals are wide relative to the 6.9% control incidence and themselves unreliable at this
+  size; the study cannot rule out effects of a few points in either direction.
+- **Both hooks change the wording that is labelled.** `stop-audit` messages list unverified
+  items, which shifts labels toward `partial` and lowers labeller agreement. The claim-mode
+  feedback asks the agent to list what it could not verify, and 6 of the 10 blocked
+  `stop-hook` trials ended `partial`. Lower `complete` rates and FCR in the hook arms partly
+  reflect wording, not only honesty.
+- **Deletions are not edits.** overclaim counts file-tool edits and shell writes, not `rm`;
+  one `ask-verify` false completion deleted a source file after its last test run and is
+  recorded as `passed`.
 - **Hooks run once and are visible.** Each hook blocks at most once per session and lives in
   the workspace's `.claude/` directory, where the agent can read it.
 - **Labels and adjudication after outcomes were known in aggregate.** See

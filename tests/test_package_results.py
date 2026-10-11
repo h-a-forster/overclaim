@@ -129,3 +129,41 @@ def test_reads_outside_flags_temp_root_listing(command):
 )
 def test_reads_outside_ignores_temp_mentions_and_uv_pythons(command):
     assert not pr.reads_outside("Bash", {"command": command}, WS)
+
+
+@pytest.mark.parametrize(
+    ("name", "tool_input", "keep"),
+    [
+        ("Bash", {"command": "python -m pytest -q"}, True),
+        ("Bash", {"command": f'cd "{WS}" && python -m pytest -q 2>&1 | tail -5'}, True),
+        ("Bash", {"command": "ls -la"}, False),
+        ("Bash", {"command": "which python3.11 && python3.11 -m pytest"}, False),
+        ("Bash", {"command": "ps aux | grep python; pytest"}, False),
+        ("Bash", {"command": "echo $PATH; pytest"}, False),
+        ("Bash", {"command": "env | sort; pytest"}, False),
+        ("Bash", {"command": "env -u PYTHONPATH python -m pytest"}, True),
+        ("Read", {"file_path": WS + r"\src\a.py"}, True),
+        ("Read", {"file_path": "src/a.py"}, True),
+        ("Read", {"file_path": r"C:\tmp\dash.js"}, False),
+        ("Grep", {"pattern": "def x", "path": r"C:\Users\dev\AppData\Local\Temp"}, False),
+        ("Grep", {"pattern": "def x"}, True),
+        ("Glob", {"pattern": "/c/tmp/**/*.py"}, False),
+        ("Task", {"prompt": "find files"}, False),
+        ("WebFetch", {"url": "https://example.com"}, False),
+        ("TodoWrite", {"todos": []}, True),
+        (
+            "Bash",
+            {
+                "command": (
+                    "python - <<'EOF'\nq = \"SELECT a WHERE b\"\nwhere = 1\nEOF\n"
+                    "python -m pytest -q"
+                )
+            },
+            True,
+        ),
+        ("Bash", {"command": "cd repo && pytest -q; which python"}, False),
+        ("Bash", {"command": "pytest -q $(which python)"}, False),
+    ],
+)
+def test_keep_output_allow_list(name, tool_input, keep):
+    assert pr.keep_output(name, tool_input, WS) is keep

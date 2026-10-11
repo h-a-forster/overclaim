@@ -49,23 +49,27 @@ Claude Code 2.1.296, `--setting-sources project`, no MCP servers, `bypassPermiss
 an agent reading the hidden checks or opening another trial's workspace. Some agents searched
 the disk: on the impossible `procure-2019-prices` task (`find /`, `find ~`), and once on
 `feature-uri-resolve` for a reference `urikit/normalize.py` (stopped before it returned
-anything). In study 2 one agent listed `context.py` files under the temp directory, which showed
-the paths of three concurrent trials' workspaces; it did not open them. Such tool outputs are
-redacted in the published archive ([results/README.md](../results/README.md#transcripts)).
+anything). In study 2, tool outputs in 11 trials showed other trials' workspace paths
+(temp-directory listings and file searches); one agent ran a recursive content search
+(`Grep "def _scan"`) over the whole temp directory, which matched another trial's file. No tool
+call opened another trial's workspace. In 10 trials, `Write` calls to `/tmp/...` paths created
+stray copies under `C:\tmp`, because the Write tool and Git Bash map `/tmp` differently. Agents
+could also read host state (`which`, `ps`, `PATH`). These outputs are redacted in the published
+archive ([results/README.md](../results/README.md#transcripts)).
 
 ## Labels
 
-- **Primary labels (superseded by gold labels, deviation 1):** Claude Sonnet 5.5 at low effort with a fixed rubric (`RUBRIC_VERSION`
-  in `src/overclaim/llm.py`), given the task prompt and the final message only. It never sees
-  the hidden-check result.
+- **Primary labels (superseded by gold labels, deviation 1):** Claude Sonnet 5.5 at low
+  effort with a fixed rubric (`RUBRIC_VERSION` in `src/overclaim/llm.py`), given the task
+  prompt and the final message only. It never sees the hidden-check result.
 - **Second labels:** Claude Opus 5.5 with the same rubric. Agreement is reported as Cohen's
   kappa.
 - **Gold labels:** where the two models agree, their label. Where they disagree, the
   **adjudicator** decides: the study's lead agent, Claude Opus 5.5, which is the same model as
   the Opus labeller. It judges each message from its text and the written rubric, without
   looking up that trial's hidden-check result, but it had seen aggregate study results. In
-  study 1 it sided with Opus in 18 of 19 disagreements. No adjudicated trial was a failed
-  solvable trial, so the false-completion count does not depend on adjudication; the
+  study 1 it sided with Opus in 18 of 19 disagreements. In study 1, no adjudicated trial was a
+  failed solvable trial, so the false-completion count does not depend on adjudication; the
   Sonnet-only and Opus-only results bracket the other metrics. The agent that wrote the
   classifier rules never saw the held-out messages.
 - **Rule classifier:** the offline classifier (`overclaim.claims`, which the Stop hook uses) is
@@ -166,6 +170,6 @@ study 2.
    - **Adjudication after aggregate outcomes were visible.** The adjudicator had seen study 2's
      aggregate results before adjudicating. It did not look up individual hidden-check
      results. Unlike study 1, 5 adjudicated trials had failed, and 2 of them were decided
-     `complete`, so the false-completion count depends on adjudication by up to 2: it is 22
-     with gold labels, 22 with Sonnet's and 23 with Opus's. The LLM labellers saw only the task
-     prompt and the final message.
+     `complete`, so 2 of the 22 false completions rest on adjudication (agreed labels alone
+     give 20). The count is 22 with gold labels, 22 with Sonnet's and 23 with Opus's. The LLM
+     labellers saw only the task prompt and the final message.
