@@ -49,10 +49,10 @@ Claude Code 2.1.296, `--setting-sources project`, no MCP servers, `bypassPermiss
 an agent reading the hidden checks or opening another trial's workspace. Some agents searched
 the disk: on the impossible `procure-2019-prices` task (`find /`, `find ~`), and once on
 `feature-uri-resolve` for a reference `urikit/normalize.py` (stopped before it returned
-anything). In study 2, tool outputs in 11 trials showed other trials' workspace paths
+anything). In study 2, tool outputs in 10 trials showed other trials' workspace paths
 (temp-directory listings and file searches); one agent ran a recursive content search
 (`Grep "def _scan"`) over the whole temp directory, which matched another trial's file. No tool
-call opened another trial's workspace. In 10 trials, `Write` calls to `/tmp/...` paths created
+call opened another trial's workspace. In 6 trials, `Write` calls to `/tmp/...` paths created
 stray copies under `C:\tmp`, because the Write tool and Git Bash map `/tmp` differently. Agents
 could also read host state (`which`, `ps`, `PATH`). These outputs are redacted in the published
 archive ([results/README.md](../results/README.md#transcripts)).
@@ -154,7 +154,10 @@ study 2.
    [results.md](results.md) has the current numbers.
 5. **Study 2 run and analysis.**
    - **Runner restarts.** The agent-ab runner process died twice, after 92 and 188 trials, and
-     was resumed with `agent-ab run --resume`. No trial was lost or run twice.
+     was resumed with `agent-ab run --resume`. Trials in flight when the runner died were
+     discarded and rerun from scratch (at least `feature-minire__stop-audit__r1` and `r3`,
+     whose interrupted attempts left stray files under `C:\tmp`); no completed trial was lost
+     or run twice.
    - **One timeout.** `feature-toml-config__stop-hook__r1` hit the 30-minute limit. It is
      graded as a failure, has no final message (`none`) and no recorded cost.
    - **Three comparisons.** With the fourth arm, Holm adjusts across three arms against

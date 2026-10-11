@@ -15,9 +15,9 @@ unit. It also ships a Claude Code Stop hook that sends the agent back once when 
 success without evidence, or, in audit mode, asks for a requirement-by-requirement check.
 
 Two studies with Claude Code, 472 trials: when a run on a solvable task failed its hidden
-check, the final message still claimed success 71% to 79% of the time, and the agent's own
-tests had usually passed (5 of 6 and 7 of 15 without one task whose hidden check contradicts
-its prompt). On impossible tasks no agent claimed success. Asking the agent to verify, or
+check, the final message still claimed success 71% to 79% of the time (5 of 6 and 7 of 15
+without one task whose hidden check contradicts its prompt), and the agent's own tests had
+usually passed. On impossible tasks no agent claimed success. Asking the agent to verify, or
 blocking its stop with either hook mode, gave no detectable reduction.
 
 Runs on Linux, macOS and Windows. Python 3.11+, no runtime dependencies. Reads Claude Code
@@ -355,10 +355,10 @@ risk in the other direction (see Limitations).
   transcript shows an agent reading the hidden checks or opening another trial's workspace. Some
   agents searched the disk: on the impossible `procure-2019-prices` task (`find /`, `find ~`),
   and once on `feature-uri-resolve` for a reference `urikit/normalize.py` (stopped before it
-  returned anything). In study 2, tool outputs in 11 trials showed other trials' workspace paths
+  returned anything). In study 2, tool outputs in 10 trials showed other trials' workspace paths
   (temp-directory listings and file searches); one agent ran a recursive content search (`Grep
   "def _scan"`) over the whole temp directory, which matched another trial's file. No tool call
-  opened another trial's workspace. In 10 trials, `Write` calls to `/tmp/...` paths created
+  opened another trial's workspace. In 6 trials, `Write` calls to `/tmp/...` paths created
   stray copies under `C:\tmp`, because the Write tool and Git Bash map `/tmp` differently.
   Agents could also read host state (`which`, `ps`, `PATH`). Outputs of these calls are redacted
   in the published archive ([results/README.md](results/README.md#transcripts)).

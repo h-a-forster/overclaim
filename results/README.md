@@ -80,11 +80,11 @@ Why outside reads are redacted: trials ran unsandboxed with full permissions on 
 transcript shows an agent reading the hidden checks. In study 1 some agents searched the disk:
 for the missing data on the impossible `procure-2019-prices` task (`find /`, `find ~`,
 `ls ~/projects`), and for a reference `urikit/normalize.py` on `feature-uri-resolve` (stopped
-before it returned anything). In study 2, tool outputs in 11 trials showed other trials'
+before it returned anything). In study 2, tool outputs in 10 trials showed other trials'
 workspace paths (temp-directory listings and file searches); one agent ran a recursive content
 search (`Grep "def _scan"`) over the whole temp directory, which matched another trial's file.
-No tool call opened another trial's workspace. In 10 trials, `Write` calls to `/tmp/...` paths
-created stray copies under `C:	mp`, because the Write tool and Git Bash map `/tmp` differently.
+No tool call opened another trial's workspace. In 6 trials, `Write` calls to `/tmp/...` paths
+created stray copies under `C:\tmp`, because the Write tool and Git Bash map `/tmp` differently.
 Agents could also read host state (`which`, `ps`, `PATH`).
 
 **Scrubbing.** The same script replaces the local home directory (in Windows, POSIX and escaped
