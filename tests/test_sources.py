@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import shutil
 from pathlib import Path
@@ -13,6 +14,7 @@ from overclaim.sources import (
     load_agent_ab,
     load_manifest,
     load_many,
+    prompt_sha256,
 )
 
 RUNS = Path(__file__).parent / "fixtures" / "runs"
@@ -82,6 +84,50 @@ def test_agent_ab_without_run_json(tmp_path):
     assert t.group == {"experiment": "run"}
 
 
+def _write_jsonl(path, rows):
+    path.write_text("".join(json.dumps(r) + "\n" for r in rows), encoding="utf-8")
+
+
+def test_agent_ab_prompt_sha256_from_prompt_file():
+    trials = by_id(load_agent_ab(RUN))
+    prompt = RUN / "trials/t-easy__control__r0/attempt-0/prompt.md"
+    data = prompt.read_bytes().replace(b"\r\n", b"\n")
+    assert trials["t-easy__control__r0"].prompt_sha256 == hashlib.sha256(data).hexdigest()
+    assert trials["t-notag__control__r0"].prompt_sha256 is None  # no artifacts on disk
+    assert trials["t-notag__hook__r0"].prompt_sha256 is None  # no artifacts recorded
+
+
+def test_prompt_sha256_ignores_line_endings(tmp_path):
+    lf, crlf = tmp_path / "lf.md", tmp_path / "crlf.md"
+    lf.write_bytes(b"Fix it.\nThen test.\n")
+    crlf.write_bytes(b"Fix it.\r\nThen test.\r\n")
+    assert prompt_sha256(lf) == prompt_sha256(crlf)
+    assert prompt_sha256(lf) == hashlib.sha256(b"Fix it.\nThen test.\n").hexdigest()
+    assert prompt_sha256(tmp_path / "missing.md") is None
+
+
+def test_agent_ab_recorded_prompt_sha256_and_loose_integers(tmp_path):
+    digest = "AB" * 32
+    rows = [
+        {"trial_id": "a__x__r0", "task": "a", "status": "fail", "attempt": "x", "repeat": None},
+        {
+            "trial_id": "a__x__r0",
+            "task": "a",
+            "status": "pass",
+            "attempt": "1",
+            "repeat": "2",
+            "prompt_sha256": digest,
+        },
+        {"trial_id": "b__x__r0", "task": "b", "status": "pass", "prompt_sha256": "not-a-hash"},
+    ]
+    _write_jsonl(tmp_path / "trials.jsonl", rows)
+    (tmp_path / "run.json").write_text(json.dumps({"config": "not-an-object"}), encoding="utf-8")
+    trials = by_id(load_agent_ab(tmp_path))
+    a = trials["a__x__r0"]
+    assert (a.passed, a.repeat, a.prompt_sha256) == (True, 2, digest.lower())
+    assert trials["b__x__r0"].prompt_sha256 is None
+
+
 def test_agent_ab_errors(tmp_path):
     with pytest.raises(SourceError, match="no trials.jsonl"):
         load_agent_ab(tmp_path)
@@ -114,6 +160,22 @@ def test_manifest_validation(tmp_path, line, error):
     path = tmp_path / "m.jsonl"
     path.write_text(line + "\n", encoding="utf-8")
     with pytest.raises(SourceError, match=error):
+        load_manifest(path)
+
+
+def test_manifest_prompt_sha256(tmp_path):
+    path = tmp_path / "m.jsonl"
+    digest = "0f" * 32
+    rows = [
+        {"id": "1", "task": "a", "passed": True, "prompt_sha256": digest},
+        {"id": "2", "task": "a", "passed": True},
+    ]
+    _write_jsonl(path, rows)
+    trials = by_id(load_manifest(path))
+    assert trials["1"].prompt_sha256 == digest
+    assert trials["2"].prompt_sha256 is None
+    _write_jsonl(path, [{**rows[0], "prompt_sha256": "abc"}])
+    with pytest.raises(SourceError, match="'prompt_sha256'"):
         load_manifest(path)
 
 

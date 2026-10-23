@@ -266,6 +266,8 @@ def test_export_csv_and_jsonl(capsys, fakes, tmp_path):
     )
     assert hard["tags"] == "hard;parser"
     assert rows["t-notag__control__r0"]["transcript_found"] == "False"
+    assert len(hard["prompt_sha256"]) == 64
+    assert rows["t-notag__control__r0"]["prompt_sha256"] == ""
     out_jsonl = tmp_path / "t.jsonl"
     code, _, _ = run(capsys, "export", str(RUN), "--out", str(out_jsonl))
     lines = [json.loads(x) for x in out_jsonl.read_text(encoding="utf-8").splitlines()]

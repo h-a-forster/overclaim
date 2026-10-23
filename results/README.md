@@ -68,7 +68,9 @@ the trial workspace, but not every tool output:
   redacted. Outputs of every other tool (subagent reports, web fetches) are redacted.
 
 Redaction changes no evidence field: `overclaim export` gives the same rows on the raw run
-directory and on the extracted archive, for both studies. Readers who want full tool outputs
+directory and on the extracted archive, for both studies. Their `prompt_sha256` (added after these
+files were made) also matches, because no published prompt contains the scrubbed home
+directory or user name. Readers who want full tool outputs
 can rerun the tasks with the configs in [experiments/](../experiments/README.md).
 
 | Study | Redacted tool outputs |

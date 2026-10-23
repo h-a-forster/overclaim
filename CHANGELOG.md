@@ -4,6 +4,21 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- Trials carry `prompt_sha256`: the sha256 of the task prompt (agent-ab `prompt.md`, line
+  endings normalised to LF, or a recorded `prompt_sha256` field; a manifest's `prompt_sha256`
+  field). `overclaim export` writes it after `agent_version`. The published
+  `results/*/trials-derived.jsonl` files were made with 0.1.0 and do not have this column;
+  no published number changes.
+
+### Fixed
+
+- agent-ab runs whose `attempt` or `repeat` fields are not integers, or whose `run.json`
+  `config` is not an object, load instead of failing with a Python error.
+
 ## [0.1.0] - 2026-10-11
 
 ### Added
