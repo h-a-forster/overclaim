@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
+import re
 import tomllib
 from collections.abc import Iterable, Mapping
 from pathlib import Path
@@ -18,9 +20,12 @@ __all__ = [
     "load_agent_ab",
     "load_many",
     "load_manifest",
+    "prompt_sha256",
 ]
 
 TRANSCRIPT_FILE = "agent.stdout"
+PROMPT_FILE = "prompt.md"
+_SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
 class SourceError(Exception):
@@ -62,6 +67,40 @@ def _str(x: Any) -> str | None:
     return x if isinstance(x, str) and x else None
 
 
+def _int(x: Any) -> int:
+    """An integer field; anything else (missing, null, text, bool) counts as 0."""
+    if isinstance(x, bool):
+        return 0
+    if isinstance(x, int):
+        return x
+    if isinstance(x, str):
+        try:
+            return int(x)
+        except ValueError:
+            return 0
+    return 0
+
+
+def _sha256(x: Any) -> str | None:
+    """A recorded sha256 hex digest, lowercased; None if absent or malformed."""
+    if not isinstance(x, str):
+        return None
+    x = x.strip().lower()
+    return x if _SHA256.fullmatch(x) else None
+
+
+def prompt_sha256(path: Path) -> str | None:
+    """sha256 of a prompt file with line endings normalised to LF, or None if unreadable.
+
+    Normalising keeps the digest stable across checkouts that convert line endings.
+    """
+    try:
+        data = path.read_bytes()
+    except OSError:
+        return None
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+
+
 def _float(x: Any) -> float | None:
     if isinstance(x, bool) or not isinstance(x, int | float):
         return None
@@ -85,7 +124,8 @@ def _task_tags(run_dir: Path, meta: Mapping[str, Any], task: Mapping[str, Any]) 
         return ()
     # Task paths are relative to the experiment file, whose location the run does not record;
     # agent-ab writes runs next to it (runs/<name>-<stamp>) and copies are often kept inside.
-    config = _str((meta.get("config") or {}).get("config"))
+    stored = meta.get("config")
+    config = _str(stored.get("config")) if isinstance(stored, dict) else None
     bases = [run_dir, run_dir.parent, run_dir.parent.parent]
     if config:
         bases.insert(0, (run_dir / config).parent)
@@ -157,7 +197,7 @@ def load_agent_ab(run_dir: str | Path) -> list[Trial]:
         if not isinstance(tid, str):
             continue
         prev = final.get(tid)
-        if prev is None or int(rec.get("attempt") or 0) >= int(prev.get("attempt") or 0):
+        if prev is None or _int(rec.get("attempt")) >= _int(prev.get("attempt")):
             final[tid] = rec
 
     tag_cache: dict[str, tuple[str, ...]] = {}
@@ -172,16 +212,20 @@ def load_agent_ab(run_dir: str | Path) -> list[Trial]:
         if task not in tag_cache:
             tag_cache[task] = _task_tags(run_dir, meta, tasks[task]) if task in tasks else ()
         artifacts = _str(rec.get("artifacts"))
+        digest = _sha256(rec.get("prompt_sha256"))
+        if digest is None and artifacts:
+            digest = prompt_sha256(run_dir / artifacts / PROMPT_FILE)
         trials.append(
             Trial(
                 id=tid,
                 task=task,
                 passed=passed,
                 arm=arm,
-                repeat=int(rec.get("repeat") or 0),
+                repeat=_int(rec.get("repeat")),
                 model=_arm_model(agent, rec),
                 effort=_str(agent.get("effort")),
                 agent_version=_str(rec.get("agent_version")) or _str(versions.get(arm)),
+                prompt_sha256=digest,
                 cost_usd=_float(rec.get("cost_usd")),
                 transcript_path=(run_dir / artifacts / TRANSCRIPT_FILE) if artifacts else None,
                 tags=tag_cache[task],
@@ -221,6 +265,10 @@ def load_manifest(path: str | Path) -> list[Trial]:
         if passed is not None and not isinstance(passed, bool):
             raise SourceError(f"{where}: 'passed' must be true, false or null")
         transcript = _str(row.get("transcript"))
+        raw_digest = row.get("prompt_sha256")
+        digest = _sha256(raw_digest)
+        if raw_digest is not None and digest is None:
+            raise SourceError(f"{where}: 'prompt_sha256' must be 64 hex digits")
         group = row.get("group")
         if isinstance(group, dict):
             extra = {str(k): str(v) for k, v in group.items() if _scalar(v)}
@@ -238,6 +286,7 @@ def load_manifest(path: str | Path) -> list[Trial]:
                 model=_str(row.get("model")),
                 effort=_str(row.get("effort")),
                 agent_version=_str(row.get("agent_version")),
+                prompt_sha256=digest,
                 cost_usd=_float(row.get("cost_usd")),
                 final_message=row["final_message"]
                 if isinstance(row.get("final_message"), str)

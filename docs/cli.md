@@ -51,6 +51,11 @@ Read: `run.json` (arms' configured `model` and `effort`, `agent_versions`, task 
 it feed the judge. Task tags come from the stored config, or from the task's `task.toml` when
 the config has none and the task directory can be found.
 
+Each trial's `prompt_sha256` is the record's `prompt_sha256` field when present, else the
+sha256 of its `prompt.md` with line endings normalised to LF (none when the file is missing).
+Together with `agent_version` it identifies the prompt and agent build a trial ran with, so
+trials from runs whose prompts differ can be told apart.
+
 The model of a trial is the arm's configured model, else the session's main model from the
 init event, else the reported models joined with `+`.
 
@@ -69,6 +74,7 @@ One JSON object per line:
 | `transcript` | string | no | Transcript path, relative to the manifest's directory. Any format in [formats.md](formats.md). |
 | `final_message` | string | no | Used when there is no transcript. |
 | `arm`, `model`, `effort`, `agent_version` | string | no | Grouping fields. |
+| `prompt_sha256` | string | no | sha256 of the task prompt (64 hex digits), exported as given. |
 | `repeat` | integer | no | Repeat index. |
 | `cost_usd` | number | no | |
 | `tags` | list of strings | no | Grouping with `--by tag`. |
@@ -216,6 +222,6 @@ Claude Code hooks; see [hook.md](hook.md) for installation and behaviour. Both a
 
 One row per trial, for pandas or R. `.jsonl` keeps lists and objects; `.csv` joins lists with
 `;` and writes `group` as JSON. Fields: `id`, `task`, `arm`, `repeat`, `model`, `effort`,
-`agent_version`, `cost_usd`, `passed`, `tags`, `claim`, `claims_tests_pass`, `claim_source`,
+`agent_version`, `prompt_sha256`, `cost_usd`, `passed`, `tags`, `claim`, `claims_tests_pass`, `claim_source`,
 `cues`, `outcome`, `verification`, `last_edit`, `test_runs`, `test_runs_after_last_edit`,
 `transcript`, `transcript_found`, `final_message`, `source`, `group`.

@@ -121,6 +121,7 @@ class Trial:
     model: str | None = None
     effort: str | None = None
     agent_version: str | None = None
+    prompt_sha256: str | None = None  # sha256 of the task prompt, LF line endings
     cost_usd: float | None = None
     final_message: str | None = None
     transcript_path: Path | None = None
