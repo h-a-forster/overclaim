@@ -187,9 +187,10 @@ study 2. Deviation 6 covers the rerun of study 1 after the `feature-uri-resolve`
      adjudication files, the task prompts and each message with its two labels, and was told
      not to open run directories, hidden checks or result files. None of the 19 is a failed
      trial.
-   - **A different agent environment.** The agent processes inherited a broken `PYTHONHOME`,
-     and the host's user-level `CLAUDE.md`, loaded in every trial of all three runs, had
-     gained a rule asking for revert checks. Both were found in the transcripts after the run
+   - **A different agent environment.** The agent processes inherited a broken `PYTHONHOME`
+     and ran bash through a custom shim (`CLAUDE_CODE_GIT_BASH_PATH`), and the host's
+     user-level `CLAUDE.md`, loaded in every trial of all three runs, had gained rules asking
+     for revert checks and a shim check. These were found in the transcripts after the run
      ([results.md](results.md#study-1-rerun-the-fixed-feature-uri-resolve-check)). They change
      the agents' test runs, not the hidden checks, so the rerun is reported as a replication
      with known differences rather than pooled with study 1.

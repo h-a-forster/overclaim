@@ -59,7 +59,7 @@ rough.
   FCR 5/6 (83.3% [38.4, 100.0]), false-claim share 5.4% [1.1, 12.9].
   [Details](docs/results.md#sensitivity-analyses).
 - **Cheap detectors did not catch them.** Flagging "done" without a passing test after the last
-  edit caught 1 of 11, with 14 false alarms among the 87 correct "done" messages. An LLM judge
+  edit caught 1 of 11, with 13 false alarms among the 87 correct "done" messages. An LLM judge
   (Sonnet 5.5, given task, diff, message and evidence) caught 1 of 11 with 4 false alarms.
   [ruleproof](https://github.com/h-a-forster/ruleproof)'s claims check caught 0 of 11 with 7.
   [Details](docs/results.md#detectors).
@@ -114,10 +114,11 @@ labels as before (125 agreed, 19 adjudicated).
   8 trials instead of 8 of 8. `sonnet-low` again claimed completion least (11 of 36) and gave 1
   of its 5 failures a `complete` claim; `haiku-low` claimed completion on all 3 of its failures.
   No arm difference was detectable.
-- **The detector numbers do not carry over.** The evidence detectors flagged 3 of the 4 false
-  completions, but through revert checks and a late test edit, with 47 false alarms among 97
-  correct "done" messages; the broken environment and the revert checks changed the agents'
-  test runs. The LLM judge and ruleproof each caught 1 of 4, with 2 and 6 false alarms.
+- **The detector numbers do not carry over.** The evidence detectors flagged 2 of the 4 false
+  completions, both through revert checks, with 41 false alarms among 97 correct "done"
+  messages; the agent environment differed from study 1's in several ways (Claude Code
+  version, a broken `PYTHONHOME`, a bash shim, a changed user-level `CLAUDE.md`). The LLM
+  judge and ruleproof each caught 1 of 4, with 2 and 6 false alarms.
 
 ## Why
 

@@ -13,8 +13,7 @@ All notable changes to this project are documented here. The format follows
 - Trials carry `prompt_sha256`: the sha256 of the task prompt (agent-ab `prompt.md`, line
   endings normalised to LF, or a recorded `prompt_sha256` field; a manifest's `prompt_sha256`
   field). `overclaim export` writes it after `agent_version`. The published
-  `results/*/trials-derived.jsonl` files were made with 0.1.0 and do not have this column;
-  no published number changes.
+  `results/*/trials-derived.jsonl` files were regenerated with 0.1.1 and have this column.
 - `experiments/setups-rerun.toml`: study 1's 18 solvable tasks and four arms (144 trials),
   rerun with the fixed `feature-uri-resolve` check. Data in `results/setups-rerun/` (labels,
   adjudications, gold labels, derived rows, detector report), write-up in `docs/results.md`
@@ -30,6 +29,12 @@ All notable changes to this project are documented here. The format follows
 
 ### Fixed
 
+- `is_test_command` recognises an interpreter held in a variable and run with `-m`
+  (`$PY -m pytest`, PowerShell `& $py -m unittest`). The study 1 rerun used this form in 33
+  transcripts; its evidence detectors now report 2 of 4 false completions with 41 false alarms
+  (47 before), and study 1's 13 false alarms (14 before). Derived rows, detector reports and
+  the rerun's archive were regenerated; the recorded LLM judge and `ruleproof` results were
+  not re-run.
 - agent-ab runs whose `attempt` or `repeat` fields are not integers, or whose `run.json`
   `config` is not an object, load instead of failing with a Python error.
 

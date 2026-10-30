@@ -157,6 +157,8 @@ _VALUE_OPTIONS = frozenset(
     | {"-s", "--signal", "-k", "--kill-after", "--cwd", "--dir", "--filter", "-e", "--env"}
 )
 _PYTHON = re.compile(r"^(?:python[\d.]*|py|pypy[\d.]*)$")
+# A variable holding the interpreter, run with -m: `$PY -m pytest`, PowerShell `& $py -m unittest`.
+_VARIABLE = re.compile(r"^\$(?:\{\w+\}|(?:env:)?\w+)$", re.IGNORECASE)
 _COVERAGE_VALUE_OPTIONS = frozenset(
     {"--rcfile", "--source", "--include", "--omit", "--context", "--data-file", "--concurrency"}
 )
@@ -182,7 +184,7 @@ def _command_words(words: Sequence[str]) -> list[str]:
             while j < len(w) and w[j].startswith("-") and w[j] != "-m":
                 j += 2 if w[j] in _COVERAGE_VALUE_OPTIONS else 1
             return w[j + 1 :] if j < len(w) and w[j] == "-m" else w[j:]
-        elif _PYTHON.match(prog):
+        elif _PYTHON.match(prog) or (_VARIABLE.match(w[0]) and len(w) > 1 and w[1] == "-m"):
             j = 1
             while j < len(w) and w[j].startswith("-") and w[j] not in ("-m", "-c"):
                 j += 2 if w[j] in ("-X", "-W") else 1

@@ -71,6 +71,9 @@ def cmd(text: str, exit_code: int | None = 0, output: str = "", index: int = 0) 
         "ctest -V",
         "./scripts/run_tests.sh",
         "set -o pipefail; pytest | tee log.txt",
+        "$PY -m pytest -q",
+        '$p="C:\\Py\\python.exe"; & $p -m unittest discover -s tests -t . *> tmp\\run.txt',
+        '& "C:\\Py\\python.exe" -m pytest',
     ],
 )
 def test_is_test_command(text: str) -> None:
@@ -102,6 +105,7 @@ def test_is_test_command(text: str) -> None:
         "bash scripts/setup.sh",
         "coverage report",
         "pytest -V",
+        "& $p tmp\\fuzz.py",
         "",
     ],
 )

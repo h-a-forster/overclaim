@@ -1,13 +1,17 @@
 # overclaim 0.1.1
 
-A maintenance release with a rerun of study 1. No published number of studies 1 and 2
-changes.
+A maintenance release with a rerun of study 1. Of the published numbers of studies 1 and 2,
+only study 1's evidence-detector false alarms change (14 to 13, from the parser fix below).
 
 ## Changes
 
 - **Prompt hashes.** Every trial carries `prompt_sha256`, the sha256 of its task prompt (line
   endings normalised to LF), and `overclaim export` writes it after `agent_version`. The
-  published `results/*/trials-derived.jsonl` files predate it and do not have the column.
+  published `results/*/trials-derived.jsonl` files were regenerated and have the column.
+- **Test commands run through an interpreter variable.** `$PY -m pytest` and PowerShell
+  `& $py -m unittest` now count as test runs. In the study 1 rerun the evidence detectors now
+  flag 2 of 4 false completions with 41 false alarms (47 before); in study 1, 13 false alarms
+  (14 before). The recorded LLM judge and `ruleproof` results were not re-run.
 - **`feature-uri-resolve` check fixed.** The task now follows agent-ab commit `9f31a88`: its
   hidden oracle and reference solution keep percent-encoded hex digits in a host uppercase, as
   the prompt says. In studies 1 and 2 the old oracle lowercased them; the task produced 6 of
@@ -16,8 +20,8 @@ changes.
 - **Study 1 rerun.** [experiments/setups-rerun.toml](../experiments/setups-rerun.toml) reran
   study 1's 18 solvable tasks in its four arms (144 trials) with the fixed check, Claude Code
   2.1.308 and an agent environment that differed from study 1's (a broken `PYTHONHOME`, a
-  changed user-level `CLAUDE.md`). 4 of 8 failures ended with a `complete` claim (FCR 50.0%
-  [0.0, 78.5]; study 1: 11 of 14, 78.6% [50.0, 100.0]), the false-claim share was 4.0%, and
+  bash shim, a changed user-level `CLAUDE.md`). 4 of 8 failures ended with a `complete` claim
+  (FCR 50.0% [0.0, 78.5]; study 1: 11 of 14, 78.6% [50.0, 100.0]), the false-claim share was 4.0%, and
   `feature-uri-resolve` failed 1 of 8 trials instead of 8 of 8. Data:
   [results/setups-rerun](../results/setups-rerun); write-up:
   [docs/results.md](results.md#study-1-rerun-the-fixed-feature-uri-resolve-check).

@@ -71,19 +71,26 @@ the trial workspace, but not every tool output:
 
 Redaction changes no evidence field in studies 1 and 2: `overclaim export` gives the same rows
 on the raw run directory and on the extracted archive. In the study 1 rerun the rows differ
-only by the scrubbed home directory, except for 6 `verification` values that change from
-`passed` to `unknown` where a test command also printed the environment (`env | grep ...`).
-None is a false completion; the effect on the detectors is in
+only by the scrubbed home directory, except for 7 `verification` values that change from
+`passed` to `unknown` where a test command also inspected the host (`which`, `env`) or read
+outside the workspace. None is a false completion; the effect on the detectors is in
 [docs/results.md](../docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check).
-Their `prompt_sha256` (added after these files were made) also matches, in all three, because
-no published prompt contains the scrubbed home directory or user name. Readers who want full
+`prompt_sha256` also matches, in all three, because no published prompt contains the scrubbed
+home directory or user name. All three `trials-derived.jsonl` files were made from the
+extracted archives with overclaim 0.1.1 (`overclaim export . --labels gold.jsonl` inside
+`results/<study>/`), so they include `prompt_sha256`.
+
+The study 1 and 2 archives were packaged with the 0.1.0 test-command parser. The 0.1.1 parser
+also recognises an interpreter held in a variable (`$PY -m pytest`); packaging those runs with
+it would keep 2 and 1 more test outputs, and changes no evidence field. The rerun's archive was
+packaged with the 0.1.1 parser. Readers who want full
 tool outputs can rerun the tasks with the configs in [experiments/](../experiments/README.md).
 
 | Study | Redacted tool outputs |
 |---|---|
 | 1 | 788, in 169 of 184 transcripts |
 | 2 | 1,905, in all 288 transcripts |
-| 1 rerun | 1,067, in 142 of 144 trials |
+| 1 rerun | 980, in 142 of 144 trials |
 
 Why outside reads are redacted: trials ran unsandboxed with full permissions on the host. No
 transcript shows an agent reading the hidden checks. In study 1 some agents searched the disk:

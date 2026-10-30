@@ -72,6 +72,8 @@ Done:
 - v0.1.0: package, hook, task suites, study 1 (184 trials) and study 2 (288 trials) with gold
   labels, packaged transcripts and write-ups.
 - v0.1.1: `prompt_sha256` per trial; loader fix for non-integer `attempt`/`repeat`;
+  `is_test_command` recognises `$PY -m pytest` / `& $py -m unittest` (derived rows, detector
+  evidence rows and the rerun archive regenerated);
   `feature-uri-resolve` updated to agent-ab `9f31a88` (hidden check follows the prompt; the new
   check fails the old reference solution); `experiments/setups-rerun.toml`, run (144 trials,
   $33.67) and written up with gold labels, blind adjudication, judge and scan
@@ -80,10 +82,10 @@ Done:
 Open:
 1. Upload `results/setups-rerun/transcripts.tar.gz` as `setups-rerun-transcripts.tar.gz` to
    the `results-data` release (package it again with `scripts/package_results.py runs/setups-rerun
-   results/setups-rerun --deny-list FILE` if needed). Before the next run, start agent-ab with
-   `PYTHONHOME` unset and no user-level `CLAUDE.md`; both leaked into the rerun's agents.
+   results/setups-rerun --deny-list FILE` if needed; the local archive was repackaged with the
+   0.1.1 parser). Before the next run, start agent-ab with `PYTHONHOME` and
+   `CLAUDE_CODE_GIT_BASH_PATH` unset and no user-level `CLAUDE.md`; all three leaked into the
+   rerun's agents.
 2. Tag v0.1.1 after the branch is merged.
-3. The published `trials-derived.jsonl` files lack `prompt_sha256`; regenerate them with
-   `overclaim export` at the next data release.
-4. Open questions the studies could not answer: other agents (the Codex reader exists, but no
+3. Open questions the studies could not answer: other agents (the Codex reader exists, but no
    Codex study was run), subtler impossible tasks, and a sandboxed rerun.
