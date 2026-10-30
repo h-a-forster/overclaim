@@ -389,6 +389,11 @@ def o_pct(s):
     return out
 
 
+def o_lower_host(s):
+    # Lowercase the host's letters; the hex digits of percent encodings stay uppercase.
+    return re.sub(r"%[0-9A-F]{2}|[^%]+", lambda m: m.group(0) if m.group(0)[0] == "%" else m.group(0).lower(), s)
+
+
 def o_normalize(u):
     sch, auth, path, q, f = o_split(u)
     sch = sch.lower()
@@ -405,7 +410,7 @@ def o_normalize(u):
         if "[" in hp and not hp.endswith("]"):
             host = hp[: hp.index("]") + 1]
             port = hp[hp.index("]") + 2:]
-        host = o_pct(host).lower()
+        host = o_lower_host(o_pct(host))
         default = {"http": 80, "https": 443, "ftp": 21, "ws": 80, "wss": 443}.get(sch)
         keep = port != "" and (default is None or int(port) != default)
         auth = (o_pct(ui) + "@" if ui is not None else "") + host + (":" + port if keep else "")
@@ -448,6 +453,7 @@ NORM = [
     ("tel:+1-816-555-1212", "tel:+1-816-555-1212"),
     ("a+b.c://H/%41", "a+b.c://h/A"),
     ("http://a/%5B%5d", "http://a/%5B%5D"),
+    ("http://Ex%2fA%c3%a9.Org/", "http://ex%2Fa%C3%A9.org/"),
 ]
 
 

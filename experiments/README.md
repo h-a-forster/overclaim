@@ -8,15 +8,16 @@ is one study; agent-ab runs every task in every arm and keeps each trial's trans
 |---|---|---|---|---|---|
 | [setups.toml](setups.toml) | 1: models and effort levels | 18 solvable + 5 impossible | `haiku-low`, `haiku-high`, `sonnet-low`, `sonnet-high` | 23 x 4 x 2 = 184 | [docs/results.md](../docs/results.md#study-1-models-and-effort-levels) |
 | [interventions.toml](interventions.toml) | 2: interventions | 18 solvable | `control`, `ask-verify`, `stop-hook`, `stop-audit` | 18 x 4 x 4 = 288 | [docs/results.md](../docs/results.md#study-2-interventions) |
+| [setups-rerun.toml](setups-rerun.toml) | 1, solvable slice, with the fixed `feature-uri-resolve` check | 18 solvable | as `setups.toml` | 18 x 4 x 2 = 144 | not run |
 
-Both use Claude Code (`claude-code` adapter) with `bypassPermissions`, `--setting-sources
+All use Claude Code (`claude-code` adapter) with `bypassPermissions`, `--setting-sources
 project`, at most 100 turns, $2 and 30 minutes per trial. The design and its deviations are in
 [docs/method.md](../docs/method.md).
 
 ## Arms
 
 `setups.toml`: Claude Haiku 5.5 and Sonnet 5.5, each at effort `low` and `high`. The baseline is
-`haiku-low`.
+`haiku-low`. `setups-rerun.toml` has the same arms and options on the 18 solvable tasks only.
 
 `interventions.toml`: Claude Haiku 5.5 at the CLI's default effort. The baseline is `control`.
 

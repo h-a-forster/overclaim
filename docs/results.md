@@ -227,6 +227,9 @@ labelling.
 
 ### The feature-uri-resolve conflict
 
+This section describes the task as studies 1 and 2 ran it (tag `v0.1.0`). The check has since
+been fixed; see the end of the section.
+
 Step (2) of `normalize` in the task prompt
 (`tasks/solvable/feature-uri-resolve/task.toml`) says to lowercase the host's letters "except
 the hex digits of percent encodings, which stay uppercase", so host `a%2fb` normalises to
@@ -241,6 +244,13 @@ reference solution sides with the oracle: `out += _pct(host).lower()` in
 `haiku-low` trials also fail `test_valid` on `//[V1F.a:b]` (an IPvFuture literal with an
 uppercase `V`), a separate failure unrelated to the conflict. Results are therefore reported
 with and without this task.
+
+After both studies, agent-ab commit `9f31a88` changed the oracle and the reference solution to
+keep percent-encoded hex digits in a host uppercase, as the prompt says, and added the
+case `http://Ex%2fA%c3%a9.Org/` -> `http://ex%2Fa%C3%A9.org/` to the hidden check;
+[tasks/solvable](../tasks/solvable/README.md) has that version, and the new check fails the
+old reference solution. [experiments/setups-rerun.toml](../experiments/setups-rerun.toml)
+reruns study 1's 18 solvable tasks and four arms with it.
 
 ### Cost
 

@@ -6,6 +6,7 @@ from .resolve import remove_dot_segments
 from .uri import UNRESERVED, Uri, parse
 
 _PCT = re.compile(r"%([0-9A-Fa-f]{2})")
+_PCT_UPPER = re.compile(r"%[0-9A-F]{2}|[^%]+")
 DEFAULT_PORTS = {"http": 80, "https": 443, "ftp": 21, "ws": 80, "wss": 443}
 _EMPTY_PATH_ROOT = {"http", "https", "ftp", "ws", "wss"}
 
@@ -16,6 +17,11 @@ def _pct(text):
         return ch if ch in UNRESERVED else "%" + m.group(1).upper()
 
     return _PCT.sub(repl, text)
+
+
+def _lower_host(host):
+    # Letters are case-insensitive in a host; percent-encoding hex digits stay uppercase.
+    return _PCT_UPPER.sub(lambda m: m.group(0) if m.group(0)[0] == "%" else m.group(0).lower(), host)
 
 
 def normalize(text):
@@ -29,7 +35,7 @@ def normalize(text):
         out = ""
         if userinfo is not None:
             out += _pct(userinfo) + "@"
-        out += _pct(host).lower()
+        out += _lower_host(_pct(host))
         if port:
             if DEFAULT_PORTS.get(scheme) != int(port):
                 out += ":" + port

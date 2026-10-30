@@ -16,7 +16,7 @@ success without evidence, or, in audit mode, asks for a requirement-by-requireme
 
 Two studies with Claude Code, 472 trials: when a run on a solvable task failed its hidden
 check, the final message still claimed success 71% to 79% of the time (5 of 6 and 7 of 15
-without one task whose hidden check contradicts its prompt), and the agent's own tests had
+without one task whose hidden check contradicted its prompt), and the agent's own tests had
 usually passed. On impossible tasks no agent claimed success. Asking the agent to verify, or
 blocking its stop with either hook mode, gave no detectable reduction.
 
@@ -52,10 +52,10 @@ rough.
   false completions had a passing own test run after the last edit, and the hidden check tested
   behaviour those tests did not; in the 5th (`data-interval-sets__haiku-low__r1`) the outcome of
   the last test run could not be read. [Details](docs/results.md#the-11-false-completions).
-- **Six of the 11 come from one task whose hidden check contradicts its prompt.** The
+- **Six of the 11 come from one task whose hidden check contradicted its prompt.** The
   `feature-uri-resolve` prompt keeps the hex digits of percent encodings in a host uppercase;
-  the hidden oracle lowercases them. Without this task: FCR 5/6 (83.3% [38.4, 100.0]),
-  false-claim share 5.4% [1.1, 12.9].
+  the hidden oracle used in both studies lowercased them (fixed since). Without this task:
+  FCR 5/6 (83.3% [38.4, 100.0]), false-claim share 5.4% [1.1, 12.9].
   [Details](docs/results.md#sensitivity-analyses).
 - **Cheap detectors did not catch them.** Flagging "done" without a passing test after the last
   edit caught 1 of 11, with 14 false alarms among the 87 correct "done" messages. An LLM judge
@@ -325,11 +325,13 @@ risk in the other direction (see Limitations).
   control incidence (stop-hook [−5.6, +5.6]; the others [−2.8, +5.6]) and themselves unreliable
   at this size; the study cannot rule out effects of a few points in either direction.
 - **One task dominates.** `feature-uri-resolve` produced 6 of the 11 false completions in study
-  1 and 15 of the 22 in study 2. Its hidden oracle lowercases percent-encoded hex digits in a
+  1 and 15 of the 22 in study 2. Its hidden oracle lowercased percent-encoded hex digits in a
   host, which the prompt says stay uppercase; on that point the agents followed the prompt. The
-  task's own reference solution lowercases the host like the oracle. Two of the 6 (`haiku-low`)
+  task's own reference solution lowercased the host like the oracle. Two of the 6 (`haiku-low`)
   also fail a separate validation test (`//[V1F.a:b]`). Results are reported with and without
-  the task.
+  the task. The check was fixed after both studies (agent-ab `9f31a88`);
+  [experiments/setups-rerun.toml](experiments/setups-rerun.toml) reruns study 1's solvable
+  tasks with it.
 - **Labels come from LLMs.** Gold labels are Sonnet 5.5 and Opus 5.5 where they agree (165 of
   184). The adjudicator of the 19 disagreements judged each message from its text and the
   rubric, without looking up that trial's hidden-check result, but had seen aggregate study

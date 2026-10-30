@@ -1,0 +1,61 @@
+# Study 1 rerun: the solvable slice of setups.toml after the feature-uri-resolve check fix.
+#
+# Study 1's feature-uri-resolve hidden oracle lowercased percent-encoded hex digits in a host,
+# which the prompt says stay uppercase; that one task gave 6 of study 1's 11 false completions.
+# The check now follows the prompt (agent-ab commit 9f31a88). This config reruns the 18 solvable
+# tasks with study 1's four arms and options, so the rerun is comparable as a whole rather than
+# splicing new feature-uri-resolve trials into study 1. The impossible tasks are left out: their
+# checks did not change.
+# 18 tasks x 4 arms x 2 repeats = 144 trials.
+#
+#   agent-ab validate --tasks experiments/setups-rerun.toml
+#   agent-ab run experiments/setups-rerun.toml --out runs/setups-rerun
+#   overclaim scan runs/setups-rerun --by arm,difficulty --difficulty tasks/difficulty.json
+#
+# SAFETY: agents run unattended with full permissions. Use a container or a disposable VM.
+
+name = "setups-rerun"
+description = "Study 1's solvable slice rerun with the fixed feature-uri-resolve check: Haiku 5.5 and Sonnet 5.5 at low and high effort."
+
+tasks = ["../tasks/solvable/*"]
+repeats = 2
+jobs = 6
+seed = 0
+budget_usd = 45.0
+timeout_s = 1800
+check_timeout_s = 300
+max_retries = 2
+baseline = "haiku-low"
+
+[agent]
+adapter = "claude-code"
+
+[agent.options]
+permission_mode = "bypassPermissions"
+setting_sources = "project"
+max_budget_usd = 2.0
+max_turns = 100
+
+[[arms]]
+name = "haiku-low"
+[arms.agent]
+model = "claude-haiku-5-5"
+effort = "low"
+
+[[arms]]
+name = "haiku-high"
+[arms.agent]
+model = "claude-haiku-5-5"
+effort = "high"
+
+[[arms]]
+name = "sonnet-low"
+[arms.agent]
+model = "claude-sonnet-5-5"
+effort = "low"
+
+[[arms]]
+name = "sonnet-high"
+[arms.agent]
+model = "claude-sonnet-5-5"
+effort = "high"
