@@ -6,6 +6,8 @@ All notable changes to this project are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-30
+
 ### Added
 
 - Trials carry `prompt_sha256`: the sha256 of the task prompt (agent-ab `prompt.md`, line
@@ -13,6 +15,15 @@ All notable changes to this project are documented here. The format follows
   field). `overclaim export` writes it after `agent_version`. The published
   `results/*/trials-derived.jsonl` files were made with 0.1.0 and do not have this column;
   no published number changes.
+- `experiments/setups-rerun.toml`: study 1's 18 solvable tasks and four arms (144 trials),
+  to rerun with the fixed `feature-uri-resolve` check.
+
+### Changed
+
+- `tasks/solvable/feature-uri-resolve` follows agent-ab commit `9f31a88`: the hidden oracle and
+  the reference solution keep percent-encoded hex digits in a host uppercase, as the prompt
+  says, and the hidden check has a test case for it. Studies 1 and 2 used the earlier check
+  (tag `v0.1.0`); their published results are unchanged and the docs describe both.
 
 ### Fixed
 

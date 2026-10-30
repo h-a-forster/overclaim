@@ -11,5 +11,5 @@ def __getattr__(name: str) -> str:
         try:
             return version("overclaim")
         except PackageNotFoundError:  # running from a source tree or the hook zipapp
-            return "0.1.0"
+            return "0.1.1"
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
