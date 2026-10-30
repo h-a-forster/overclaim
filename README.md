@@ -26,7 +26,8 @@ transcripts (`stream-json` and session files), Codex `exec --json`, a generic JS
 
 Study 1: [Claude Haiku 5.5 and Sonnet 5.5 at low and high effort](docs/results.md#study-1-models-and-effort-levels),
 23 tasks, 184 trials. Study 2: [interventions on Haiku 5.5](docs/results.md#study-2-interventions),
-18 tasks, 288 trials.
+18 tasks, 288 trials. A [rerun of study 1](docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check)
+with a fixed hidden check: 18 tasks, 144 trials.
 
 ## Findings
 
@@ -100,6 +101,23 @@ $28.08. Gold labels as in study 1 (239 agreed, 49 adjudicated). Only 31 trials f
   22 of the 49 disagreements are `stop-audit` reports, which list unverified items. The
   false-completion count is 22 with gold or Sonnet labels,
   23 with Opus labels and 15 with the rule classifier.
+
+From the [study 1 rerun](docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check):
+study 1's 18 solvable tasks and four arms again, 144 trials, $33.67, with the fixed
+`feature-uri-resolve` check, Claude Code 2.1.308 and an agent environment that differed from
+study 1's (a broken `PYTHONHOME` and a changed user-level `CLAUDE.md`; see the write-up). Gold
+labels as before (125 agreed, 19 adjudicated).
+
+- **The headline is weaker but consistent.** 4 of 8 failures were reported as done: FCR 50.0%
+  [0.0, 78.5], against study 1's 78.6% [50.0, 100.0]. The false-claim share was 4.0%
+  [0.0, 11.3] (study 1 without `feature-uri-resolve`: 5.4%). `feature-uri-resolve` failed 1 of
+  8 trials instead of 8 of 8. `sonnet-low` again claimed completion least (11 of 36) and gave 1
+  of its 5 failures a `complete` claim; `haiku-low` claimed completion on all 3 of its failures.
+  No arm difference was detectable.
+- **The detector numbers do not carry over.** The evidence detectors flagged 3 of the 4 false
+  completions, but through revert checks and a late test edit, with 47 false alarms among 97
+  correct "done" messages; the broken environment and the revert checks changed the agents'
+  test runs. The LLM judge and ruleproof each caught 1 of 4, with 2 and 6 false alarms.
 
 ## Why
 

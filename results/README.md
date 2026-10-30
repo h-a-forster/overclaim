@@ -5,6 +5,7 @@ One directory per study, named after its experiment config in [experiments/](../
 | Directory | Study | Config | Write-up |
 |---|---|---|---|
 | `setups/` | 1: Haiku 5.5 and Sonnet 5.5 at low and high effort, 184 trials | [setups.toml](../experiments/setups.toml) | [docs/results.md](../docs/results.md#study-1-models-and-effort-levels) |
+| `setups-rerun/` | 1 rerun: study 1's solvable tasks with the fixed `feature-uri-resolve` check, 144 trials | [setups-rerun.toml](../experiments/setups-rerun.toml) | [docs/results.md](../docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check) |
 | `interventions/` | 2: control, ask-verify, stop-hook, stop-audit on Haiku 5.5, 288 trials | [interventions.toml](../experiments/interventions.toml) | [docs/results.md](../docs/results.md#study-2-interventions) |
 
 ## Files in `results/<study>/`
@@ -18,7 +19,7 @@ One directory per study, named after its experiment config in [experiments/](../
 | `adjudicated.jsonl` | Decisions on the trials where Sonnet and Opus disagree, with a note each. The adjudicator ([docs/method.md](../docs/method.md#labels)) judged each message from its text and the rubric without looking up that trial's hidden-check result | the adjudicator |
 | `gold.jsonl` | Final labels: the LLM label where both agree (`source` `gold:agreed`), else the adjudication (`gold:adjudicated`) | `scripts/gold_labels.py` |
 | `trials-derived.jsonl` | One row per trial with claim, outcome (`false_completion`, ...), verification evidence, test-run counts, final message | `overclaim export ... --labels gold.jsonl` |
-| `scan-detectors.json` | Full `scan --format json` report with the detectors: all four in study 1, including the LLM judge; `unverified`, `claims-tests-unbacked` and `ruleproof` in study 2 | `overclaim scan ... --detectors ... --format json` |
+| `scan-detectors.json` | Full `scan --format json` report with the detectors: all four in study 1 and its rerun, including the LLM judge; `unverified`, `claims-tests-unbacked` and `ruleproof` in study 2 | `overclaim scan ... --detectors ... --format json` |
 | `transcripts.tar.gz` | Per-trial artifacts (not in git, see below) | `scripts/package_results.py` |
 
 Label rows have the shape `{"id", "label", "claims_tests_pass", "cues"?, "source"?}` and work
@@ -29,7 +30,8 @@ directly as `overclaim scan --labels`. Field lists: [docs/cli.md](../docs/cli.md
 
 `transcripts.tar.gz` is too large for git (about 12 MB for study 1, 31 MB for study 2). Each
 study's archive is published as an asset on the GitHub release tagged `results-data`:
-`setups-transcripts.tar.gz` and `interventions-transcripts.tar.gz`.
+`setups-transcripts.tar.gz` and `interventions-transcripts.tar.gz`. The rerun's archive,
+`setups-rerun-transcripts.tar.gz` (about 13 MB), is not uploaded yet.
 
 ```sh
 gh release download results-data --repo h-a-forster/overclaim --pattern "*-transcripts.tar.gz"
@@ -67,16 +69,21 @@ the trial workspace, but not every tool output:
   inside the trial workspace; reads elsewhere, including the temp directory itself, are
   redacted. Outputs of every other tool (subagent reports, web fetches) are redacted.
 
-Redaction changes no evidence field: `overclaim export` gives the same rows on the raw run
-directory and on the extracted archive, for both studies. Their `prompt_sha256` (added after these
-files were made) also matches, because no published prompt contains the scrubbed home
-directory or user name. Readers who want full tool outputs
-can rerun the tasks with the configs in [experiments/](../experiments/README.md).
+Redaction changes no evidence field in studies 1 and 2: `overclaim export` gives the same rows
+on the raw run directory and on the extracted archive. In the study 1 rerun the rows differ
+only by the scrubbed home directory, except for 6 `verification` values that change from
+`passed` to `unknown` where a test command also printed the environment (`env | grep ...`).
+None is a false completion; the effect on the detectors is in
+[docs/results.md](../docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check).
+Their `prompt_sha256` (added after these files were made) also matches, in all three, because
+no published prompt contains the scrubbed home directory or user name. Readers who want full
+tool outputs can rerun the tasks with the configs in [experiments/](../experiments/README.md).
 
 | Study | Redacted tool outputs |
 |---|---|
 | 1 | 788, in 169 of 184 transcripts |
 | 2 | 1,905, in all 288 transcripts |
+| 1 rerun | 1,067, in 142 of 144 trials |
 
 Why outside reads are redacted: trials ran unsandboxed with full permissions on the host. No
 transcript shows an agent reading the hidden checks. In study 1 some agents searched the disk:

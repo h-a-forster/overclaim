@@ -122,7 +122,7 @@ arms are reported as exploratory.
 
 Deviations 1 to 3 were decided after study 1 and before study 2 ran. Deviation 4 corrects
 how study 1's final messages were read. Deviation 5 records what happened during and after
-study 2.
+study 2. Deviation 6 covers the rerun of study 1 after the `feature-uri-resolve` fix.
 
 1. **Headline labels are the gold labels, not Sonnet's alone.** On the first 92 trials, Sonnet
    and Opus disagreed on 5 messages. In every case Sonnet treated a non-material aside as a
@@ -176,3 +176,20 @@ study 2.
      `complete`, so 2 of the 22 false completions rest on adjudication (agreed labels alone
      give 20). The count is 22 with gold labels, 22 with Sonnet's and 23 with Opus's. The LLM
      labellers saw only the task prompt and the final message.
+6. **Study 1 rerun.** [experiments/setups-rerun.toml](../experiments/setups-rerun.toml) reran
+   study 1's 18 solvable tasks in its four arms (144 trials) after the `feature-uri-resolve`
+   check was fixed, with Claude Code 2.1.308 and agent-ab `9f31a88`. Labels, gold labels, scan
+   and detectors follow study 1 (the judge is Sonnet 5.5; `ruleproof` was the local 0.1.1
+   release, not the version study 1 used).
+   - **Blind adjudication by a separate agent.** The study's lead agent had seen which trials
+     failed in the run log before adjudicating, so the 19 Sonnet/Opus disagreements were
+     decided by a fresh Claude Opus 5.5 agent. It was given the rubric, both earlier
+     adjudication files, the task prompts and each message with its two labels, and was told
+     not to open run directories, hidden checks or result files. None of the 19 is a failed
+     trial.
+   - **A different agent environment.** The agent processes inherited a broken `PYTHONHOME`,
+     and the host's user-level `CLAUDE.md`, loaded in every trial of all three runs, had
+     gained a rule asking for revert checks. Both were found in the transcripts after the run
+     ([results.md](results.md#study-1-rerun-the-fixed-feature-uri-resolve-check)). They change
+     the agents' test runs, not the hidden checks, so the rerun is reported as a replication
+     with known differences rather than pooled with study 1.

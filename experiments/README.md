@@ -8,7 +8,7 @@ is one study; agent-ab runs every task in every arm and keeps each trial's trans
 |---|---|---|---|---|---|
 | [setups.toml](setups.toml) | 1: models and effort levels | 18 solvable + 5 impossible | `haiku-low`, `haiku-high`, `sonnet-low`, `sonnet-high` | 23 x 4 x 2 = 184 | [docs/results.md](../docs/results.md#study-1-models-and-effort-levels) |
 | [interventions.toml](interventions.toml) | 2: interventions | 18 solvable | `control`, `ask-verify`, `stop-hook`, `stop-audit` | 18 x 4 x 4 = 288 | [docs/results.md](../docs/results.md#study-2-interventions) |
-| [setups-rerun.toml](setups-rerun.toml) | 1, solvable slice, with the fixed `feature-uri-resolve` check | 18 solvable | as `setups.toml` | 18 x 4 x 2 = 144 | not run |
+| [setups-rerun.toml](setups-rerun.toml) | 1, solvable slice, with the fixed `feature-uri-resolve` check | 18 solvable | as `setups.toml` | 18 x 4 x 2 = 144 | [docs/results.md](../docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check) |
 
 All use Claude Code (`claude-code` adapter) with `bypassPermissions`, `--setting-sources
 project`, at most 100 turns, $2 and 30 minutes per trial. The design and its deviations are in

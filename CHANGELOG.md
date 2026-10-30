@@ -16,7 +16,10 @@ All notable changes to this project are documented here. The format follows
   `results/*/trials-derived.jsonl` files were made with 0.1.0 and do not have this column;
   no published number changes.
 - `experiments/setups-rerun.toml`: study 1's 18 solvable tasks and four arms (144 trials),
-  to rerun with the fixed `feature-uri-resolve` check.
+  rerun with the fixed `feature-uri-resolve` check. Data in `results/setups-rerun/` (labels,
+  adjudications, gold labels, derived rows, detector report), write-up in `docs/results.md`
+  and deviation 6 in `docs/method.md`: FCR 4/8 (50.0% [0.0, 78.5]) against study 1's 11/14,
+  false-claim share 4.0%; the agent environment differed from study 1's.
 
 ### Changed
 

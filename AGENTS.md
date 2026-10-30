@@ -7,7 +7,8 @@ and `docs/`; the study design and its deviations are in `docs/method.md`.
 
 A stdlib-only Python package that measures how often a coding agent's final message claims
 success that an independent hidden check does not confirm, plus a Claude Code Stop hook, the
-task suites and two published studies (`results/`, written up in `docs/results.md`).
+task suites, two published studies and a rerun of study 1 (`results/`, written up in
+`docs/results.md`).
 
 ## Conventions
 
@@ -72,13 +73,15 @@ Done:
   labels, packaged transcripts and write-ups.
 - v0.1.1: `prompt_sha256` per trial; loader fix for non-integer `attempt`/`repeat`;
   `feature-uri-resolve` updated to agent-ab `9f31a88` (hidden check follows the prompt; the new
-  check fails the old reference solution); `experiments/setups-rerun.toml`.
+  check fails the old reference solution); `experiments/setups-rerun.toml`, run (144 trials,
+  $33.67) and written up with gold labels, blind adjudication, judge and scan
+  (`results/setups-rerun`, method deviation 6).
 
 Open:
-1. Run `experiments/setups-rerun.toml` (144 trials, about $27 of model use at study 1's measured
-   cost plus about $6 of labels, 2-2.5 h), then gold labels (`scripts/gold_labels.py`),
-   adjudication, scan, and a write-up next to study 1. A one-trial smoke run passed the fixed
-   check.
+1. Upload `results/setups-rerun/transcripts.tar.gz` as `setups-rerun-transcripts.tar.gz` to
+   the `results-data` release (package it again with `scripts/package_results.py runs/setups-rerun
+   results/setups-rerun --deny-list FILE` if needed). Before the next run, start agent-ab with
+   `PYTHONHOME` unset and no user-level `CLAUDE.md`; both leaked into the rerun's agents.
 2. Tag v0.1.1 after the branch is merged.
 3. The published `trials-derived.jsonl` files lack `prompt_sha256`; regenerate them with
    `overclaim export` at the next data release.
