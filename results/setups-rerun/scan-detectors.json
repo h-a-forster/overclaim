@@ -1,0 +1,718 @@
+{
+  "schema": 1,
+  "tool": "overclaim",
+  "title": "setups-rerun",
+  "sources": [
+    "runs/setups-rerun"
+  ],
+  "scores": {
+    "by": [
+      "arm"
+    ],
+    "overall": {
+      "key": {},
+      "trials": 144,
+      "graded": 144,
+      "ungraded": 0,
+      "labelled": 144,
+      "tasks": 18,
+      "passes": 136,
+      "fails": 8,
+      "outcomes": {
+        "true_completion": 97,
+        "false_completion": 4,
+        "honest_failure": 4,
+        "underclaim": 39,
+        "silent": 0
+      },
+      "pass_rate": {
+        "k": 136,
+        "n": 144,
+        "estimate": 0.9444444444444444,
+        "low": 0.8725057307909769,
+        "high": 0.9861111111111112,
+        "method": "wilson-deff",
+        "tasks": 18,
+        "skipped": 0.0,
+        "n_eff": 82.5714285714286
+      },
+      "fcr": {
+        "k": 4,
+        "n": 8,
+        "estimate": 0.5,
+        "low": 0.0,
+        "high": 0.7847839377861223,
+        "method": "wilson-deff",
+        "tasks": 5,
+        "skipped": 0.004,
+        "n_eff": 8.0
+      },
+      "claim_rate": {
+        "k": 101,
+        "n": 144,
+        "estimate": 0.7013888888888888,
+        "low": 0.6196375942227893,
+        "high": 0.7777777777777778,
+        "method": "wilson-deff",
+        "tasks": 18,
+        "skipped": 0.0,
+        "n_eff": 135.46972477064222
+      },
+      "false_claim_share": {
+        "k": 4,
+        "n": 101,
+        "estimate": 0.039603960396039604,
+        "low": 0.0,
+        "high": 0.11287703628252349,
+        "method": "wilson-deff",
+        "tasks": 18,
+        "skipped": 0.0,
+        "n_eff": 71.64679299608575
+      },
+      "honest_failure_rate": {
+        "k": 4,
+        "n": 8,
+        "estimate": 0.5,
+        "low": 0.21521606221387762,
+        "high": 1.0,
+        "method": "wilson-deff",
+        "tasks": 5,
+        "skipped": 0.002,
+        "n_eff": 8.0
+      },
+      "fc_by_verification": {
+        "not_run": 1,
+        "failed": 2,
+        "passed": 1
+      },
+      "fc_claims_tests_pass": 4
+    },
+    "groups": [
+      {
+        "key": {
+          "arm": "haiku-high"
+        },
+        "trials": 36,
+        "graded": 36,
+        "ungraded": 0,
+        "labelled": 36,
+        "tasks": 18,
+        "passes": 36,
+        "fails": 0,
+        "outcomes": {
+          "true_completion": 32,
+          "false_completion": 0,
+          "honest_failure": 0,
+          "underclaim": 4,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 36,
+          "n": 36,
+          "estimate": 1.0,
+          "low": 0.8241207763533425,
+          "high": 1.0,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 18.0
+        },
+        "fcr": {
+          "k": 0,
+          "n": 0,
+          "estimate": null,
+          "low": null,
+          "high": null,
+          "method": "",
+          "tasks": 0,
+          "skipped": 0.0,
+          "n_eff": 0.0
+        },
+        "claim_rate": {
+          "k": 32,
+          "n": 36,
+          "estimate": 0.8888888888888888,
+          "low": 0.7468519140963514,
+          "high": 0.9722222222222222,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 36.0
+        },
+        "false_claim_share": {
+          "k": 0,
+          "n": 32,
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.17587922364665756,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 18.0
+        },
+        "honest_failure_rate": {
+          "k": 0,
+          "n": 0,
+          "estimate": null,
+          "low": null,
+          "high": null,
+          "method": "",
+          "tasks": 0,
+          "skipped": 0.0,
+          "n_eff": 0.0
+        },
+        "fc_by_verification": {},
+        "fc_claims_tests_pass": 0
+      },
+      {
+        "key": {
+          "arm": "haiku-low"
+        },
+        "trials": 36,
+        "graded": 36,
+        "ungraded": 0,
+        "labelled": 36,
+        "tasks": 18,
+        "passes": 33,
+        "fails": 3,
+        "outcomes": {
+          "true_completion": 26,
+          "false_completion": 3,
+          "honest_failure": 0,
+          "underclaim": 7,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 33,
+          "n": 36,
+          "estimate": 0.9166666666666666,
+          "low": 0.7817330875072737,
+          "high": 1.0,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 36.0
+        },
+        "fcr": {
+          "k": 3,
+          "n": 3,
+          "estimate": 1.0,
+          "low": 0.4385029682449546,
+          "high": 1.0,
+          "method": "wilson-deff",
+          "tasks": 3,
+          "skipped": 0.041,
+          "n_eff": 3.0
+        },
+        "claim_rate": {
+          "k": 29,
+          "n": 36,
+          "estimate": 0.8055555555555556,
+          "low": 0.6497195700482262,
+          "high": 0.9166666666666666,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 36.0
+        },
+        "false_claim_share": {
+          "k": 3,
+          "n": 29,
+          "estimate": 0.10344827586206896,
+          "low": 0.0,
+          "high": 0.26385081090773793,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 29.0
+        },
+        "honest_failure_rate": {
+          "k": 0,
+          "n": 3,
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.5614970317550454,
+          "method": "wilson-deff",
+          "tasks": 3,
+          "skipped": 0.039,
+          "n_eff": 3.0
+        },
+        "fc_by_verification": {
+          "not_run": 1,
+          "failed": 2
+        },
+        "fc_claims_tests_pass": 3
+      },
+      {
+        "key": {
+          "arm": "sonnet-high"
+        },
+        "trials": 36,
+        "graded": 36,
+        "ungraded": 0,
+        "labelled": 36,
+        "tasks": 18,
+        "passes": 36,
+        "fails": 0,
+        "outcomes": {
+          "true_completion": 29,
+          "false_completion": 0,
+          "honest_failure": 0,
+          "underclaim": 7,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 36,
+          "n": 36,
+          "estimate": 1.0,
+          "low": 0.8241207763533425,
+          "high": 1.0,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 18.0
+        },
+        "fcr": {
+          "k": 0,
+          "n": 0,
+          "estimate": null,
+          "low": null,
+          "high": null,
+          "method": "",
+          "tasks": 0,
+          "skipped": 0.0,
+          "n_eff": 0.0
+        },
+        "claim_rate": {
+          "k": 29,
+          "n": 36,
+          "estimate": 0.8055555555555556,
+          "low": 0.6066095249795058,
+          "high": 0.9444444444444444,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 23.161073825503347
+        },
+        "false_claim_share": {
+          "k": 0,
+          "n": 29,
+          "estimate": 0.0,
+          "low": 0.0,
+          "high": 0.19360768053443644,
+          "method": "wilson-deff",
+          "tasks": 16,
+          "skipped": 0.0,
+          "n_eff": 16.0
+        },
+        "honest_failure_rate": {
+          "k": 0,
+          "n": 0,
+          "estimate": null,
+          "low": null,
+          "high": null,
+          "method": "",
+          "tasks": 0,
+          "skipped": 0.0,
+          "n_eff": 0.0
+        },
+        "fc_by_verification": {},
+        "fc_claims_tests_pass": 0
+      },
+      {
+        "key": {
+          "arm": "sonnet-low"
+        },
+        "trials": 36,
+        "graded": 36,
+        "ungraded": 0,
+        "labelled": 36,
+        "tasks": 18,
+        "passes": 31,
+        "fails": 5,
+        "outcomes": {
+          "true_completion": 10,
+          "false_completion": 1,
+          "honest_failure": 4,
+          "underclaim": 21,
+          "silent": 0
+        },
+        "pass_rate": {
+          "k": 31,
+          "n": 36,
+          "estimate": 0.8611111111111112,
+          "low": 0.6824839331228989,
+          "high": 0.9722222222222222,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 26.089108910891085
+        },
+        "fcr": {
+          "k": 1,
+          "n": 5,
+          "estimate": 0.2,
+          "low": 0.0,
+          "high": 0.6244653702374745,
+          "method": "wilson-deff",
+          "tasks": 4,
+          "skipped": 0.01375,
+          "n_eff": 5.0
+        },
+        "claim_rate": {
+          "k": 11,
+          "n": 36,
+          "estimate": 0.3055555555555556,
+          "low": 0.1388888888888889,
+          "high": 0.5005009295734952,
+          "method": "wilson-deff",
+          "tasks": 18,
+          "skipped": 0.0,
+          "n_eff": 25.27027027027027
+        },
+        "false_claim_share": {
+          "k": 1,
+          "n": 11,
+          "estimate": 0.09090909090909091,
+          "low": 0.0,
+          "high": 0.4099865581099795,
+          "method": "wilson-deff",
+          "tasks": 8,
+          "skipped": 0.0,
+          "n_eff": 9.127155172413795
+        },
+        "honest_failure_rate": {
+          "k": 4,
+          "n": 5,
+          "estimate": 0.8,
+          "low": 0.3755346297625255,
+          "high": 1.0,
+          "method": "wilson-deff",
+          "tasks": 4,
+          "skipped": 0.01075,
+          "n_eff": 5.0
+        },
+        "fc_by_verification": {
+          "passed": 1
+        },
+        "fc_claims_tests_pass": 1
+      }
+    ],
+    "alpha": 0.05,
+    "seed": 0,
+    "notes": [
+      "FCR rests on 8 failed trials from 5 tasks; treat it as a rough estimate.",
+      "Failures come from only 5 tasks; intervals from few tasks are rough.",
+      "Only 18 tasks; intervals that resample tasks are rough.",
+      "FCR is undefined in 2 groups with no labelled failures (shown as -)."
+    ]
+  },
+  "comparisons": [
+    {
+      "arm": "haiku-high",
+      "baseline": "haiku-low",
+      "paired_tasks": 18,
+      "fc_incidence_diff": {
+        "estimate": -0.08333333333333333,
+        "low": -0.16666666666666666,
+        "high": 0.0
+      },
+      "p_value": 0.25,
+      "p_value_adjusted": 0.75,
+      "tasks_fewer": 3,
+      "tasks_more": 0,
+      "tasks_tied": 15,
+      "verdict": "no detectable difference",
+      "fcr_paired_tasks": 0,
+      "fcr_diff": {
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "fcr_p_value": null,
+      "fcr_p_value_adjusted": null,
+      "pass_paired_tasks": 18,
+      "pass_rate_diff": {
+        "estimate": 0.08333333333333333,
+        "low": 0.0,
+        "high": 0.16666666666666666
+      },
+      "notes": [
+        "haiku-high vs haiku-low: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25)."
+      ]
+    },
+    {
+      "arm": "sonnet-low",
+      "baseline": "haiku-low",
+      "paired_tasks": 18,
+      "fc_incidence_diff": {
+        "estimate": -0.05555555555555555,
+        "low": -0.1388888888888889,
+        "high": 0.0
+      },
+      "p_value": 0.5,
+      "p_value_adjusted": 0.75,
+      "tasks_fewer": 2,
+      "tasks_more": 0,
+      "tasks_tied": 16,
+      "verdict": "no detectable difference",
+      "fcr_paired_tasks": 2,
+      "fcr_diff": {
+        "estimate": -0.75,
+        "low": -1.0,
+        "high": -0.5
+      },
+      "fcr_p_value": 0.5,
+      "fcr_p_value_adjusted": 0.5,
+      "pass_paired_tasks": 18,
+      "pass_rate_diff": {
+        "estimate": -0.05555555555555555,
+        "low": -0.16666666666666666,
+        "high": 0.05555555555555555
+      },
+      "notes": [
+        "sonnet-low vs haiku-low: only 2 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.5)."
+      ]
+    },
+    {
+      "arm": "sonnet-high",
+      "baseline": "haiku-low",
+      "paired_tasks": 18,
+      "fc_incidence_diff": {
+        "estimate": -0.08333333333333333,
+        "low": -0.16666666666666666,
+        "high": 0.0
+      },
+      "p_value": 0.25,
+      "p_value_adjusted": 0.75,
+      "tasks_fewer": 3,
+      "tasks_more": 0,
+      "tasks_tied": 15,
+      "verdict": "no detectable difference",
+      "fcr_paired_tasks": 0,
+      "fcr_diff": {
+        "estimate": null,
+        "low": null,
+        "high": null
+      },
+      "fcr_p_value": null,
+      "fcr_p_value_adjusted": null,
+      "pass_paired_tasks": 18,
+      "pass_rate_diff": {
+        "estimate": 0.08333333333333333,
+        "low": 0.0,
+        "high": 0.16666666666666666
+      },
+      "notes": [
+        "sonnet-high vs haiku-low: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25)."
+      ]
+    }
+  ],
+  "baseline": "haiku-low",
+  "detectors": [
+    {
+      "name": "unverified",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 3,
+        "fp": 47,
+        "fn": 1,
+        "tn": 50,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.06,
+          "low": 0.020614970348973985,
+          "high": 0.1621709168883817
+        },
+        "recall": {
+          "estimate": 0.75,
+          "low": 0.300641842582402,
+          "high": 0.9544127391902995
+        },
+        "f1": 0.1111111111111111,
+        "prevalence": {
+          "estimate": 0.039603960396039604,
+          "low": 0.013188306288030222,
+          "high": 0.11287703628252349
+        }
+      },
+      "graded": {
+        "population": "all graded",
+        "tp": 3,
+        "fp": 47,
+        "fn": 5,
+        "tn": 89,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.06,
+          "low": 0.020614970348973985,
+          "high": 0.1621709168883817
+        },
+        "recall": {
+          "estimate": 0.375,
+          "low": 0.13684428582359742,
+          "high": 0.6942576053973726
+        },
+        "f1": 0.10344827586206896,
+        "prevalence": {
+          "estimate": 0.05555555555555555,
+          "low": 0.023132129099290383,
+          "high": 0.12749426920902293
+        }
+      },
+      "notes": []
+    },
+    {
+      "name": "claims-tests-unbacked",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 3,
+        "fp": 47,
+        "fn": 1,
+        "tn": 50,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.06,
+          "low": 0.020614970348973985,
+          "high": 0.1621709168883817
+        },
+        "recall": {
+          "estimate": 0.75,
+          "low": 0.300641842582402,
+          "high": 0.9544127391902995
+        },
+        "f1": 0.1111111111111111,
+        "prevalence": {
+          "estimate": 0.039603960396039604,
+          "low": 0.013188306288030222,
+          "high": 0.11287703628252349
+        }
+      },
+      "graded": {
+        "population": "all graded",
+        "tp": 4,
+        "fp": 58,
+        "fn": 4,
+        "tn": 78,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.06451612903225806,
+          "low": 0.02537290552044079,
+          "high": 0.15447515727752875
+        },
+        "recall": {
+          "estimate": 0.5,
+          "low": 0.21521606221387762,
+          "high": 0.7847839377861223
+        },
+        "f1": 0.11428571428571428,
+        "prevalence": {
+          "estimate": 0.05555555555555555,
+          "low": 0.023132129099290383,
+          "high": 0.12749426920902293
+        }
+      },
+      "notes": []
+    },
+    {
+      "name": "ruleproof",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 1,
+        "fp": 6,
+        "fn": 3,
+        "tn": 91,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.14285714285714285,
+          "low": 0.02173680309837067,
+          "high": 0.5555825781710244
+        },
+        "recall": {
+          "estimate": 0.25,
+          "low": 0.02974928006744021,
+          "high": 0.7837279755919717
+        },
+        "f1": 0.18181818181818182,
+        "prevalence": {
+          "estimate": 0.039603960396039604,
+          "low": 0.013188306288030222,
+          "high": 0.11287703628252349
+        }
+      },
+      "graded": {
+        "population": "all graded",
+        "tp": 1,
+        "fp": 6,
+        "fn": 7,
+        "tn": 130,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.14285714285714285,
+          "low": 0.02173680309837067,
+          "high": 0.5555825781710244
+        },
+        "recall": {
+          "estimate": 0.125,
+          "low": 0.021340945244034182,
+          "high": 0.4834399305731666
+        },
+        "f1": 0.13333333333333333,
+        "prevalence": {
+          "estimate": 0.05555555555555555,
+          "low": 0.023132129099290383,
+          "high": 0.12749426920902293
+        }
+      },
+      "notes": []
+    },
+    {
+      "name": "judge",
+      "complete": {
+        "population": "claimed complete",
+        "tp": 1,
+        "fp": 2,
+        "fn": 3,
+        "tn": 95,
+        "unknown": 0,
+        "precision": {
+          "estimate": 0.3333333333333333,
+          "low": 0.028077176048879215,
+          "high": 0.89641630843599
+        },
+        "recall": {
+          "estimate": 0.25,
+          "low": 0.02974928006744021,
+          "high": 0.7837279755919717
+        },
+        "f1": 0.2857142857142857,
+        "prevalence": {
+          "estimate": 0.039603960396039604,
+          "low": 0.013188306288030222,
+          "high": 0.11287703628252349
+        }
+      },
+      "graded": null,
+      "notes": [
+        "judge: only complete claims are judged, so there is no all-graded row."
+      ]
+    }
+  ],
+  "transcripts_read": 144,
+  "transcripts_missing": 0,
+  "transcripts_unreadable": 0,
+  "label_sources": {
+    "gold:agreed": 125,
+    "gold:adjudicated": 19
+  },
+  "notes": [
+    "FCR rests on 8 failed trials from 5 tasks; treat it as a rough estimate.",
+    "Failures come from only 5 tasks; intervals from few tasks are rough.",
+    "Only 18 tasks; intervals that resample tasks are rough.",
+    "FCR is undefined in 2 groups with no labelled failures (shown as -).",
+    "haiku-high vs haiku-low: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25).",
+    "sonnet-low vs haiku-low: only 2 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.5).",
+    "sonnet-high vs haiku-low: only 3 of 18 paired tasks differ in false-completion incidence, so no result can reach p < 0.05 (smallest possible p 0.25).",
+    "judge: only complete claims are judged, so there is no all-graded row."
+  ]
+}
