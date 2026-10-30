@@ -30,7 +30,7 @@ All notable changes to this project are documented here. The format follows
 ### Fixed
 
 - `is_test_command` recognises an interpreter held in a variable and run with `-m`
-  (`$PY -m pytest`, PowerShell `& $py -m unittest`). The study 1 rerun used this form in 33
+  (`$PY -m pytest`, PowerShell `& $py -m unittest`). The study 1 rerun used this form in 39
   transcripts; its evidence detectors now report 2 of 4 false completions with 41 false alarms
   (47 before), and study 1's 13 false alarms (14 before). Derived rows, detector reports and
   the rerun's archive were regenerated; the recorded LLM judge and `ruleproof` results were

@@ -661,8 +661,9 @@ all 144 graded trials, `claims-tests-unbacked` flagged 2 of 8 failures with 49 f
 
 These numbers use the test-command parser of overclaim 0.1.1, which also recognises an
 interpreter held in a variable (`$PY -m unittest`, PowerShell `& $py -m unittest`). The parser
-first used here missed those commands, which appear in 33 rerun transcripts (19 in the
-PowerShell form) and in 16 of its 47 false alarms, and reported 3 TP, 47 FP for both evidence
+first used here missed those commands, which appear in 39 rerun transcripts (10 of them in
+PowerShell) and in 18 of its 47 false alarms; the fix changes 17 rerun verification values
+(one from `passed` to `failed`). The old parser reported 3 TP, 47 FP for both evidence
 detectors, recall 75.0%, and 4 of 8 failures with 58 false alarms over all graded trials. The
 `judge` row is the recorded run with the old parser: its input includes the evidence summary,
 which the fix changes for 29 of the 101 `complete` trials, and it was not re-run, to avoid new
