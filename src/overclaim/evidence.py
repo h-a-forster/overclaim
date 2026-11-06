@@ -291,32 +291,34 @@ def is_test_command(cmd: str, extra: Sequence[re.Pattern[str]] = ()) -> bool:
 # --- outcomes ----------------------------------------------------------------------------
 
 _M = re.MULTILINE
+# Leading whitespace is `[ \t]*`, not `\s*`: under `_M`, `^\s*` rescans every following blank line,
+# so a capped 8 KB of blank lines takes seconds, and a hook only has 30.
 _FAILED = (
-    re.compile(r"^[=\s]*(?:.*\b)?[1-9]\d* (?:failed|errors?)\b.*\bin [\d.]+m?s\b", _M),  # pytest
+    re.compile(r"^(?:.*\b)?[1-9]\d* (?:failed|errors?)\b.*\bin [\d.]+m?s\b", _M),  # pytest
     re.compile(r"^FAILED \((?:failures|errors)=\d+", _M),  # unittest
-    re.compile(r"^\s*Tests?:?\s+.*\b[1-9]\d* failed\b", _M),  # jest, vitest
+    re.compile(r"^[ \t]*Tests?:?\s+.*\b[1-9]\d* failed\b", _M),  # jest, vitest
     re.compile(r"^(?:FAIL|--- FAIL:)(?:\s|$)", _M),  # go test
     re.compile(r"test result: FAILED\b"),  # cargo
-    re.compile(r"^\s*[1-9]\d* failing\b", _M),  # mocha
+    re.compile(r"^[ \t]*[1-9]\d* failing\b", _M),  # mocha
     re.compile(r"\b\d+ examples?, [1-9]\d* failures?\b"),  # rspec
     re.compile(r"^(?:FAILURES|ERRORS)!\s*$", _M),  # phpunit
-    re.compile(r"^\s*Failed!\s+-\s+Failed:\s+[1-9]", _M),  # dotnet test
+    re.compile(r"^[ \t]*Failed!\s+-\s+Failed:\s+[1-9]", _M),  # dotnet test
     re.compile(r"\btests passed, [1-9]\d* tests? failed out of\b"),  # ctest
-    re.compile(r"^\s*ERROR:\s+\S+: commands failed", _M),  # tox
+    re.compile(r"^[ \t]*ERROR:\s+\S+: commands failed", _M),  # tox
     re.compile(r"^nox > Session \S+ failed", _M),  # nox
 )
 _PASSED = (
-    re.compile(r"^[=\s]*(?:.*\b)?[1-9]\d* passed\b.*\bin [\d.]+m?s\b", _M),  # pytest
-    re.compile(r"^Ran [1-9]\d* tests? in [\d.]+s\s*\n(?:\s*\n)*\s*OK\b", _M),  # unittest
-    re.compile(r"^\s*Tests?:?\s+.*\b[1-9]\d* passed\b", _M),  # jest, vitest
+    re.compile(r"^(?:.*\b)?[1-9]\d* passed\b.*\bin [\d.]+m?s\b", _M),  # pytest
+    re.compile(r"^Ran [1-9]\d* tests? in [\d.]+s[^\S\n]*\n\s*OK\b", _M),  # unittest
+    re.compile(r"^[ \t]*Tests?:?\s+.*\b[1-9]\d* passed\b", _M),  # jest, vitest
     re.compile(r"^ok\s+\S+\s+(?:[\d.]+s|\(cached\))", _M),  # go test
     re.compile(r"test result: ok\. [1-9]"),  # cargo
-    re.compile(r"^\s*[1-9]\d* passing\b", _M),  # mocha
+    re.compile(r"^[ \t]*[1-9]\d* passing\b", _M),  # mocha
     re.compile(r"\b[1-9]\d* examples?, 0 failures\b"),  # rspec
     re.compile(r"^OK \([1-9]\d* tests?", _M),  # phpunit
-    re.compile(r"^\s*Passed!\s+-\s+Failed:\s+0\b", _M),  # dotnet test
+    re.compile(r"^[ \t]*Passed!\s+-\s+Failed:\s+0\b", _M),  # dotnet test
     re.compile(r"\b100% tests passed\b"),  # ctest
-    re.compile(r"^\s*congratulations :\)", _M),  # tox
+    re.compile(r"^[ \t]*congratulations :\)", _M),  # tox
     re.compile(r"^nox > Session \S+ was successful", _M),  # nox
 )
 _NO_TESTS = re.compile(

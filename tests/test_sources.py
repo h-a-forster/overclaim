@@ -91,7 +91,7 @@ def _write_jsonl(path, rows):
 def test_agent_ab_prompt_sha256_from_prompt_file():
     trials = by_id(load_agent_ab(RUN))
     prompt = RUN / "trials/t-easy__control__r0/attempt-0/prompt.md"
-    data = prompt.read_bytes().replace(b"\r\n", b"\n")
+    data = prompt.read_bytes().replace(b"\r\n", b"\n").removesuffix(b"\n")
     assert trials["t-easy__control__r0"].prompt_sha256 == hashlib.sha256(data).hexdigest()
     assert trials["t-notag__control__r0"].prompt_sha256 is None  # no artifacts on disk
     assert trials["t-notag__hook__r0"].prompt_sha256 is None  # no artifacts recorded
@@ -102,8 +102,16 @@ def test_prompt_sha256_ignores_line_endings(tmp_path):
     lf.write_bytes(b"Fix it.\nThen test.\n")
     crlf.write_bytes(b"Fix it.\r\nThen test.\r\n")
     assert prompt_sha256(lf) == prompt_sha256(crlf)
-    assert prompt_sha256(lf) == hashlib.sha256(b"Fix it.\nThen test.\n").hexdigest()
     assert prompt_sha256(tmp_path / "missing.md") is None
+
+
+def test_prompt_file_digest_matches_the_recorded_one(tmp_path):
+    # agent-ab records the digest of the prompt and writes the prompt plus "\n" to prompt.md, so
+    # runs with and without the field must agree on the same prompt.
+    prompt = "Fix it.\nThen test."
+    (tmp_path / "prompt.md").write_text(prompt + "\n", encoding="utf-8")
+    recorded = hashlib.sha256(prompt.encode("utf-8")).hexdigest()
+    assert prompt_sha256(tmp_path / "prompt.md") == recorded
 
 
 def test_agent_ab_recorded_prompt_sha256_and_loose_integers(tmp_path):

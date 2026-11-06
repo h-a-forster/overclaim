@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import time
 from pathlib import Path
 
 import pytest
@@ -160,7 +161,22 @@ def test_test_outcome(command: Command, expected: bool | None) -> None:
     assert evidence.test_outcome(command) is expected
 
 
+@pytest.mark.parametrize(
+    "output",
+    [
+        "Ran 5 tests in 0.1s\n" + "\n" * 24 + "done",  # backtracked exponentially
+        " \n" * 4096,  # blank lines, as much as a transcript keeps
+        "=" * 8192,
+    ],
+)
+def test_output_verdict_is_fast_on_blank_output(output: str) -> None:
+    start = time.perf_counter()
+    assert evidence.output_verdict(output) is None
+    assert time.perf_counter() - start < 1
+
+
 def test_output_verdict() -> None:
+    assert evidence.output_verdict("Ran 2 tests in 0.1s\n\n \n\nOK") is True
     assert evidence.output_verdict("") is None
     assert evidence.output_verdict("== 3 passed in 1.2s ==") is True
     assert evidence.output_verdict("== 3 passed, 1 error in 1.2s ==") is False

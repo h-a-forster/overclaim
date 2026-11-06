@@ -90,15 +90,17 @@ def _sha256(x: Any) -> str | None:
 
 
 def prompt_sha256(path: Path) -> str | None:
-    """sha256 of a prompt file with line endings normalised to LF, or None if unreadable.
+    """sha256 of a prompt file's text, or None if unreadable.
 
-    Normalising keeps the digest stable across checkouts that convert line endings.
+    Line endings are normalised to LF, so checkouts that convert them give the same digest, and
+    the newline agent-ab adds when it writes ``prompt.md`` is dropped, so the digest equals the
+    ``prompt_sha256`` agent-ab records for the prompt it sent.
     """
     try:
         data = path.read_bytes()
     except OSError:
         return None
-    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+    return hashlib.sha256(data.replace(b"\r\n", b"\n").removesuffix(b"\n")).hexdigest()
 
 
 def _float(x: Any) -> float | None:

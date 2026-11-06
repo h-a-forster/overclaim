@@ -52,7 +52,8 @@ it feed the judge. Task tags come from the stored config, or from the task's `ta
 the config has none and the task directory can be found.
 
 Each trial's `prompt_sha256` is the record's `prompt_sha256` field when present, else the
-sha256 of its `prompt.md` with line endings normalised to LF (none when the file is missing).
+sha256 of its `prompt.md` with line endings normalised to LF and the final newline agent-ab adds
+removed, which gives the same digest (none when the file is missing).
 Together with `agent_version` it identifies the prompt and agent build a trial ran with, so
 trials from runs whose prompts differ can be told apart.
 
