@@ -48,6 +48,7 @@ packages = ["src/overclaim"]
 include = [
     "/src/overclaim",
     "/tests",
+    "/scripts",
     "/docs",
     "/README.md",
     "/LICENSE",
