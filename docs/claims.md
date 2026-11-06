@@ -173,7 +173,9 @@ Data:
 
 **The real held-out figure is the one to trust.** Synthetic messages, even held-out ones,
 overstate accuracy. Before it was reworked on real messages, the classifier scored 1.00 on the
-synthetic splits and 0.51 on real ones.
+synthetic splits and 0.51 on real ones. Later runs score lower still, against their gold labels:
+60.4% on study 2 (its `stop-audit` reports list unverified items) and 51.4% on the study 1 rerun
+([results.md](results.md#label-agreement-2)).
 
 Real-holdout confusion (rows are gold, columns are predicted):
 

@@ -192,5 +192,5 @@ study 2. Deviation 6 covers the rerun of study 1 after the `feature-uri-resolve`
      user-level `CLAUDE.md`, loaded in every trial of all three runs, had gained rules asking
      for revert checks and a shim check. These were found in the transcripts after the run
      ([results.md](results.md#study-1-rerun-the-fixed-feature-uri-resolve-check)). They change
-     the agents' test runs, not the hidden checks, so the rerun is reported as a replication
-     with known differences rather than pooled with study 1.
+     the agents' test runs and final messages, not the hidden checks, so the rerun is reported
+     as a replication with known differences rather than pooled with study 1.

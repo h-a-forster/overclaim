@@ -6,8 +6,10 @@ only study 1's evidence-detector false alarms change (14 to 13, from the parser 
 ## Changes
 
 - **Prompt hashes.** Every trial carries `prompt_sha256`, the sha256 of its task prompt (line
-  endings normalised to LF), and `overclaim export` writes it after `agent_version`. The
-  published `results/*/trials-derived.jsonl` files were regenerated and have the column.
+  endings normalised to LF, the final newline of `prompt.md` removed), and `overclaim export`
+  writes it after `agent_version`. A digest read from `prompt.md` now equals the one newer
+  agent-ab versions record, so one prompt has one digest across all three runs. The published
+  `results/*/trials-derived.jsonl` files were regenerated and have the column.
 - **Test commands run through an interpreter variable.** `$PY -m pytest` and PowerShell
   `& $py -m unittest` now count as test runs. In the study 1 rerun the evidence detectors now
   flag 2 of 4 false completions with 41 false alarms (47 before); in study 1, 13 false alarms
@@ -25,6 +27,17 @@ only study 1's evidence-detector false alarms change (14 to 13, from the parser 
   `feature-uri-resolve` failed 1 of 8 trials instead of 8 of 8. Data:
   [results/setups-rerun](../results/setups-rerun); write-up:
   [docs/results.md](results.md#study-1-rerun-the-fixed-feature-uri-resolve-check).
+- **Hang on blank test output.** `Ran N tests` followed by about 30 blank lines and no `OK`
+  made the outcome check backtrack exponentially, so `scan` and `inspect` never finished and
+  the Stop hook ran into its timeout; 8 KB of blank output took seconds. The summary patterns
+  no longer do this. No evidence field in the published data changes.
+- **Source distribution.** It now includes `scripts/`, without which its test suite could not
+  be collected. CI runs the tests from the sdist, installs with `uv sync --locked`, and pins
+  its actions to commit SHAs.
+- **Disclosure.** The docs now say that all three runs loaded the host's user-level
+  `CLAUDE.md`, that this also changed the rerun's final messages (108 of 144 carry absolute
+  file links, against 0 of 144 in study 1), and how the rules score on study 2 and the rerun.
+  The rerun's `PowerShell` and `git stash` rows now count graded attempts (76 and 29).
 - **Loader fix.** agent-ab runs whose `attempt` or `repeat` fields are not integers, or whose
   `run.json` `config` is not an object, load instead of failing with a Python error.
 

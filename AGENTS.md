@@ -32,9 +32,13 @@ task suites, two published studies and a rerun of study 1 (`results/`, written u
   caches calls), and log progress.
 - Scratch files go in `tmp/`; run directories in `runs/` (both gitignored). No `.bak` copies;
   use git.
-- Commits end with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The repository
-  is public: change it through pull requests with CI. No personal names, emails, local user
-  paths or machine details in committed files, commit messages or logs.
+- The repository is public: change it through pull requests with CI. No personal names, emails,
+  local user paths or machine details in committed files, commit messages or logs. No
+  attribution trailers on commits or pull requests.
+- Do not hand-edit `CHANGELOG.md`; change notes go in `docs/release-notes-<version>.md`.
+- Open work lives in `backlog.md`, one outcome per line; delete finished items.
+- Published `trials-derived.jsonl` files must stay byte-identical to `overclaim export . --labels
+  gold.jsonl` run inside `results/<study>/` on the extracted archive.
 
 ## Layout
 
@@ -53,39 +57,25 @@ task suites, two published studies and a rerun of study 1 (`results/`, written u
 ## How to test
 
 ```sh
-uv sync --group dev
+uv sync --locked --group dev
 uv run pytest
 uv run ruff check .
 uv run ruff format --check src tests scripts
 uv run python scripts/validate_impossible.py
 ```
 
-CI runs these on Linux, macOS and Windows (Python 3.11-3.13) and smoke-tests a built wheel.
-Solvable tasks are validated with `agent-ab validate --tasks <config>` (not in CI).
+CI runs these on Linux, macOS and Windows (Python 3.11-3.13), smoke-tests a built wheel and runs
+the tests from the sdist. Solvable tasks are validated with `agent-ab validate <config> --tasks`
+(not in CI). `uv sync` removes anything not locked, including an agent-ab installed by hand.
 
-## Status and next steps
+## Status
 
-Updated: 2026-10-30 (v0.1.1 prepared on a branch, untagged; v0.1.0 and the `results-data`
-release are published).
+Updated: 2026-11-06 (v0.1.1 prepared on `polish-2026-10-30`, untagged; v0.1.0 and the
+`results-data` release are published). Open work is in `backlog.md`.
 
-Done:
 - v0.1.0: package, hook, task suites, study 1 (184 trials) and study 2 (288 trials) with gold
   labels, packaged transcripts and write-ups.
-- v0.1.1: `prompt_sha256` per trial; loader fix for non-integer `attempt`/`repeat`;
-  `is_test_command` recognises `$PY -m pytest` / `& $py -m unittest` (derived rows, detector
-  evidence rows and the rerun archive regenerated);
-  `feature-uri-resolve` updated to agent-ab `9f31a88` (hidden check follows the prompt; the new
-  check fails the old reference solution); `experiments/setups-rerun.toml`, run (144 trials,
-  $33.67) and written up with gold labels, blind adjudication, judge and scan
-  (`results/setups-rerun`, method deviation 6).
-
-Open:
-1. Upload `results/setups-rerun/transcripts.tar.gz` as `setups-rerun-transcripts.tar.gz` to
-   the `results-data` release (package it again with `scripts/package_results.py runs/setups-rerun
-   results/setups-rerun --deny-list FILE` if needed; the local archive was repackaged with the
-   0.1.1 parser). Before the next run, start agent-ab with `PYTHONHOME` and
-   `CLAUDE_CODE_GIT_BASH_PATH` unset and no user-level `CLAUDE.md`; all three leaked into the
-   rerun's agents.
-2. Tag v0.1.1 after the branch is merged.
-3. Open questions the studies could not answer: other agents (the Codex reader exists, but no
-   Codex study was run), subtler impossible tasks, and a sandboxed rerun.
+- v0.1.1: see `docs/release-notes-0.1.1.md`. The study 1 rerun (144 trials, $33.67) is in
+  `results/setups-rerun`; its archive is local until it is uploaded. Repackage it with
+  `scripts/package_results.py runs/setups-rerun results/setups-rerun --deny-list FILE`, which
+  reproduces the same bytes.

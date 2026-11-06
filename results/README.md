@@ -13,7 +13,7 @@ One directory per study, named after its experiment config in [experiments/](../
 | File | Content | Made by |
 |---|---|---|
 | `run.json` | agent-ab run metadata: arms, models, effort, agent versions, task tags, baseline | agent-ab, copied by `scripts/package_results.py` |
-| `trials.jsonl` | One row per trial (last attempt): task, arm, repeat, hidden-check `status`, cost, tokens, turns, agent init | agent-ab, copied by `scripts/package_results.py` |
+| `trials.jsonl` | One row per attempt (the rerun has 145 rows for 144 trials; overclaim reads each trial's last attempt): task, arm, repeat, hidden-check `status`, cost, tokens, turns, agent init | agent-ab, copied by `scripts/package_results.py` |
 | `labels-sonnet.jsonl` | Claim label per trial from Claude Sonnet 5.5, rubric `claims-2` | `overclaim label ... --model sonnet --effort low` |
 | `labels-opus.jsonl` | The same from Claude Opus 5.5 | `overclaim label ... --model opus --effort low` |
 | `adjudicated.jsonl` | Decisions on the trials where Sonnet and Opus disagree, with a note each. The adjudicator ([docs/method.md](../docs/method.md#labels)) judged each message from its text and the rubric without looking up that trial's hidden-check result | the adjudicator |
@@ -76,7 +76,8 @@ only by the scrubbed home directory, except for 7 `verification` values that cha
 outside the workspace. None is a false completion; the effect on the detectors is in
 [docs/results.md](../docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check).
 `prompt_sha256` also matches, in all three, because no published prompt contains the scrubbed
-home directory or user name. All three `trials-derived.jsonl` files were made from the
+home directory or user name, and it is equal across the three runs task by task, because the
+prompts are. All three `trials-derived.jsonl` files were made from the
 extracted archives with overclaim 0.1.1 (`overclaim export . --labels gold.jsonl` inside
 `results/<study>/`), so they include `prompt_sha256`.
 

@@ -39,7 +39,11 @@ built from `src/` that is not in git. It needs Python 3.11+ on `PATH` and nothin
 
 ## Running
 
-The agents run unattended with full permissions. Use a container or a disposable VM.
+The agents run unattended with full permissions. Use a container or a disposable VM. The
+published runs also picked up the host's user-level `CLAUDE.md`, skills and plugins, despite
+`--setting-sources project`. For a clean run, use an agent-ab version with trial isolation, or
+a machine with no such configuration, and start it with `PYTHONHOME` and
+`CLAUDE_CODE_GIT_BASH_PATH` unset.
 
 Study 1:
 

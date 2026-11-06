@@ -20,7 +20,7 @@ over trials.
 | | |
 |---|---|
 | Agent | Claude Code 2.1.296, `claude -p`, `bypassPermissions`, `--setting-sources project`, no MCP servers |
-| Agent environment | despite `--setting-sources project`, every trial loaded the Claude Code skills and plugins present on the host (`agent_init` in `trials.jsonl`): 22 skills, including `verify`, `code-review`, `simplify` and `debug`, 3 plugins and 6 subagent types; no MCP servers |
+| Agent environment | despite `--setting-sources project`, every trial loaded the Claude Code skills and plugins present on the host (`agent_init` in `trials.jsonl`): 22 skills, including `verify`, `code-review`, `simplify` and `debug`, 3 plugins and 6 subagent types; no MCP servers. It also loaded the host's user-level `CLAUDE.md` ([rerun](#study-1-rerun-the-fixed-feature-uri-resolve-check)) |
 | Arms | `haiku-low`, `haiku-high`, `sonnet-low`, `sonnet-high`: Claude Haiku 5.5 and Sonnet 5.5 at effort `low` and `high` |
 | Tasks | 18 solvable Python tasks ([tasks/solvable](../tasks/solvable/README.md)) and 5 impossible ones ([tasks/impossible](../tasks/impossible/README.md)) |
 | Repeats | 2 per task and arm: 23 x 4 x 2 = 184 trials |
@@ -286,7 +286,7 @@ how agents worded their reports.
 |---|---|
 | Agent | Claude Code 2.1.296, `claude -p`, `bypassPermissions`, `--setting-sources project`, no MCP servers |
 | Model | Claude Haiku 5.5 at the CLI's default effort, all arms |
-| Agent environment | as in study 1: 22 built-in skills, 3 plugins, 6 subagent types, no MCP servers in every trial |
+| Agent environment | as in study 1: 22 built-in skills, 3 plugins, 6 subagent types, no MCP servers in every trial, and the host's user-level `CLAUDE.md` |
 | Arms | `control` (task prompt only), `ask-verify` (prompt plus a request to run the tests after the last change and say what is unverified), `stop-hook` (Stop hook `--mode claim`), `stop-audit` (Stop hook `--mode audit`) |
 | Tasks | the 18 solvable tasks of study 1 ([tasks/solvable](../tasks/solvable/README.md)) |
 | Repeats | 4 per task and arm: 18 x 4 x 4 = 288 trials |
@@ -537,10 +537,12 @@ a pooled sample: the agent version and the agent environment changed too (below)
 | Outcome | 144 graded, 0 infrastructure errors | 144 graded; 1 infrastructure error (agent-ab could not create the grading copy), retried by agent-ab; total cost $33.67 including the errored attempt |
 | Claims | gold labels, 19 adjudicated | gold labels: 125 agreed, 19 adjudicated ([method.md](method.md#deviations), deviation 6) |
 | Data | [results/setups](../results/setups) | [results/setups-rerun](../results/setups-rerun) |
+| Host access | unsandboxed | unsandboxed. No tool call names a hidden check or another trial's workspace; one tool output shows another trial's path |
 
 Several differences in the agent environment were found in the transcripts after the run.
-None is part of the task, and together they change how the agents ran and checked their tests.
-Counts are transcripts with a match, out of 144 in the rerun and 184 in study 1 (all tasks):
+None is part of the task. Together they change how the agents ran and checked their tests, and
+how they wrote the final message that gets labelled. Counts are transcripts with a match, out
+of the 144 graded attempts in the rerun and 184 in study 1 (all tasks):
 
 | Difference | Rerun | Study 1 |
 |---|---|---|
@@ -548,15 +550,17 @@ Counts are transcripts with a match, out of 144 in the rerun and 184 in study 1 
 | A broken `PYTHONHOME`: the agents inherited one pointing at the uv-managed Python 3.12 that the pinned agent-ab install ran on, so `python` on `PATH` failed until the agent unset it; transcripts mentioning `PYTHONHOME` | 126 | 1 |
 | Bash ran through a custom shim set on the host (`CLAUDE_CODE_GIT_BASH_PATH`); transcripts showing its `claude-bash-*.sh` script path | 34 | 0 |
 | Agents checking that shim with `echo $0`, as the host's user-level `CLAUDE.md` asks | 25 | 0 |
-| Agents using the `PowerShell` tool (available in both runs) | 77 | 4 |
+| Agents using the `PowerShell` tool (available in both runs) | 76 | 4 |
 | Revert checks: the user-level `CLAUDE.md` now asked agents to show each fix's test failing on the unfixed code; transcripts containing "fails without it" | 20 | 0 |
-| The same, `git stash` in a shell command | 28 | 8 |
+| The same, `git stash` in a shell command | 29 | 8 |
+| Final messages with absolute paths under the home directory (file links, a formatting rule in that `CLAUDE.md`); from `final_message` in `trials-derived.jsonl`, 144 and 144 solvable trials | 108 | 0 |
 
 As in studies 1 and 2, every trial loaded the host's user-level `CLAUDE.md` (agents cite it,
 for example for scratch files in `tmp/`); the rows above show that it had changed. The hidden
 checks were not affected by `PYTHONHOME`: all 8 failed checks ran their tests and report test
 failures. Revert checks run the suite on reverted code, which overclaim records as a failing
-test run.
+test run. The one retried trial (`bughunt-textadv__sonnet-high__r0`) was graded on `attempt-1`;
+the commands below read `attempt-0`, which gives the same three counts.
 
 ```sh
 grep -l PYTHONHOME results/setups-rerun/trials/*/attempt-0/agent.stdout | wc -l
@@ -693,7 +697,10 @@ overclaim agree results/setups-rerun/gold.jsonl results/setups-rerun
 The 19 disagreements were adjudicated without hidden-check results; none was a failed trial,
 so the false-completion count does not depend on adjudication. 13 went Opus's way, 6 Sonnet's
 ([adjudicated.jsonl](../results/setups-rerun/adjudicated.jsonl)). The rule classifier, retuned
-on study 1 messages, reads 64 of the 101 gold `complete` messages as `partial`.
+on study 1 messages, reads 64 of the 101 gold `complete` messages as `partial`: 61 of the 64 have
+a failing-test or unverified cue, mostly narrated revert checks ("the test fails without it")
+and named unverified items. `overclaim classify` on `final_message` in
+[trials-derived.jsonl](../results/setups-rerun/trials-derived.jsonl) shows the cues.
 
 ### Sensitivity analyses
 
@@ -724,7 +731,8 @@ From `cost_usd` in [results/setups-rerun/trials.jsonl](../results/setups-rerun/t
 | all | 144 | $33.41 | $0.232 | | |
 
 The errored attempt cost another $0.26. Labelling (about $6.90) and the judge ($5.11 for 101
-calls) are not included.
+calls) are not included; those two figures come from the local call cache, which is not
+published.
 
 ### Verdict
 
@@ -734,11 +742,13 @@ calls) are not included.
   detectable; the false-completion count does not depend on which LLM labelled.
 - **Weaker:** the rate itself. 4 of 8 (50.0% [0.0, 78.5]) against 11 of 14; with 8 failures
   from 5 tasks the interval is too wide to say whether the rate changed.
-- **Not comparable:** the verification breakdown and the detector precision and recall. They
-  changed together with the agent environment (Claude Code version, broken `PYTHONHOME`, bash
-  shim, a changed user-level `CLAUDE.md` with revert checks, more PowerShell use) as well as
-  the oracle; this run cannot separate those causes, though the revert checks and the
-  `PYTHONHOME` workarounds are visible in the transcripts.
+- **Not comparable:** the verification breakdown, the detector precision and recall, and the
+  rule classifier's accuracy. They changed together with the agent environment (Claude Code
+  version, broken `PYTHONHOME`, bash shim, a changed user-level `CLAUDE.md` with revert checks
+  and a file-link format, more PowerShell use) as well as the oracle; this run cannot separate
+  those causes, though the revert checks and the `PYTHONHOME` workarounds are visible in the
+  transcripts. The FCR is a claim rate read from final messages, and those changed too, so the
+  rate itself may be affected.
 
 ## Reproducing the tables
 
