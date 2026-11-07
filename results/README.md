@@ -31,7 +31,7 @@ directly as `overclaim scan --labels`. Field lists: [docs/cli.md](../docs/cli.md
 `transcripts.tar.gz` is too large for git (about 12 MB for study 1, 31 MB for study 2). Each
 study's archive is published as an asset on the GitHub release tagged `results-data`:
 `setups-transcripts.tar.gz` and `interventions-transcripts.tar.gz`. The rerun's archive,
-`setups-rerun-transcripts.tar.gz` (about 13 MB), is not uploaded yet.
+`setups-rerun-transcripts.tar.gz` (about 13 MB), is in the `results-data` release.
 
 ```sh
 gh release download results-data --repo h-a-forster/overclaim --pattern "*-transcripts.tar.gz"
