@@ -86,9 +86,10 @@ jobs:
         run: |
           set -euxo pipefail
           uv pip install --python "$RUNNER_TEMP/smoke" pytest
-          mkdir "$RUNNER_TEMP/sdist"
-          tar -xzf dist/*.tar.gz -C "$RUNNER_TEMP/sdist" --strip-components=1
-          cd "$RUNNER_TEMP/sdist"
+          # Relative paths: GNU tar on Windows reads "D:\..." as a remote host.
+          mkdir sdist-check
+          tar -xzf dist/*.tar.gz -C sdist-check --strip-components=1
+          cd sdist-check
           python -m pytest
 
       - name: Upload distributions
