@@ -20,3 +20,4 @@ results/*/transcripts.tar.gz
 
 # Extracted transcript archives
 results/*/trials/
+backlog.md
