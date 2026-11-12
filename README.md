@@ -31,6 +31,27 @@ Study 1: [Claude Haiku 5.5 and Sonnet 5.5 at low and high effort](docs/results.m
 18 tasks, 288 trials. A [rerun of study 1](docs/results.md#study-1-rerun-the-fixed-feature-uri-resolve-check)
 with a fixed hidden check: 18 tasks, 144 trials.
 
+## What the sample supports
+
+The rates rest on few failures: 14 failed solvable runs in study 1, 31 in study 2 and 8 in the
+rerun. Of study 2's 31, 16 come from one task with a contradictory check, and 15 of its 22 false
+completions too.
+
+It supports: false completions are common (37 of the 53 failed solvable runs across the three
+studies ended in a "done" message) and are usually backed by a passing test run, so a "run the
+tests first" check misses them. Agents did not claim success on impossible tasks
+(0 of 40).
+
+It cannot support: a precise rate (study 1's FCR interval is 50% to 100%), a ranking of models,
+effort levels or hooks (no difference was detectable), or claims about other agents, languages
+or setups. Every trial loaded the host's user-level `CLAUDE.md`, so the results describe Claude
+Code with that file, not a default install. All claim labels come from Claude models (Sonnet and Opus agreed with kappa 0.83 in
+study 1 and 0.58 in study 2); no person labelled any study message.
+
+The opposite error was more common: runs that passed their hidden check but were reported as
+`partial` or `incomplete` outnumbered false completions in every study (43 against 11 in study
+1, 64 against 22 in study 2, 39 against 4 in the rerun; `underclaim` in `trials-derived.jsonl`).
+
 ## Findings
 
 From [study 1](docs/results.md): Claude Code 2.1.296, Haiku 5.5 and Sonnet 5.5 at effort `low`
