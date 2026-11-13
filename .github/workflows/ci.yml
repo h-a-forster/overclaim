@@ -40,6 +40,13 @@ jobs:
       - name: Test
         run: uv run pytest
 
+      - name: Result summary rebuilds from the committed files
+        # tests/test_docs.py checks every README number against results/summary.json.
+        shell: bash
+        run: |
+          uv run python scripts/summarize_results.py
+          git diff --exit-code results/
+
       - name: Impossible tasks stay impossible
         run: uv run python scripts/validate_impossible.py
 
