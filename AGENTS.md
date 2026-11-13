@@ -24,7 +24,10 @@ task suites, two published studies and a rerun of study 1 (`results/`, written u
   a held-out message into `tune` (see `CONTRIBUTING.md`).
 - Every number in `README.md` and `docs/results.md` must trace to `results/<study>/` files or a
   scan command in `docs/results.md#reproducing-the-tables`. Change the numbers only with the
-  data.
+  data. `scripts/summarize_results.py` rebuilds `results/summary.json` from the committed files
+  (CI diffs it), and `tests/test_docs.py` checks every README and CITATION number against it;
+  a new number needs a key there and a claim, or a fixed entry whose source the README states
+  (counts read only from the transcript archive). `docs/results.md` is not checked yet.
 - Published data goes through `scripts/package_results.py` (redaction, home-path and user-name
   scrubbing, `--deny-list`). Transcript archives are release assets, not git files.
 - Studies call models and run agents unsandboxed with full permissions: use a container or a

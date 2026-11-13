@@ -71,8 +71,9 @@ rough.
   Pass rate 90.3% [74.1, 97.9]. [Details](docs/results.md#by-task-kind).
 - **The agents had tested their work.** In 10 of the 11 false completions, the agent's last
   test run after its last edit passed (the 11th was unreadable), and all 11 messages said the
-  tests pass. The hidden check failed 1 to 5 of 33 to 85 tests: random and oracle-comparison
-  property tests, error handling, a rename edge case. Outside `feature-uri-resolve`, 4 of the 5
+  tests pass. The hidden check failed 1 to 5 of 33 to 85 tests (read from the check output in
+  the transcript archive, not from files in git): random and oracle-comparison property tests,
+  error handling, a rename edge case. Outside `feature-uri-resolve`, 4 of the 5
   false completions had a passing own test run after the last edit, and the hidden check tested
   behaviour those tests did not; in the 5th (`data-interval-sets__haiku-low__r1`) the outcome of
   the last test run could not be read. [Details](docs/results.md#the-11-false-completions).
@@ -108,7 +109,8 @@ $28.08. Gold labels as in study 1 (239 agreed, 49 adjudicated). Only 31 trials f
   −1.4 for `ask-verify` and `stop-audit` with Sonnet's labels). The study found no support for
   a Stop hook preventing false completions.
   [Details](docs/results.md#study-2-interventions).
-- **The claim-mode hook had little to catch.** It blocked 10 of 72 trials, 9 of which passed.
+- **The claim-mode hook had little to catch.** It blocked 10 of 72 trials, 9 of which passed
+  (block counts here and below are read from the transcript archive, not from files in git).
   All 5 false completions in its arm had a passing own test run after the last edit. Six of the
   10 blocked trials ended labelled `partial`, including the one blocked failure, whose
   pre-block message claimed completion: the hook's feedback asks the agent to list what it
@@ -372,7 +374,8 @@ risk in the other direction (see Limitations).
   1 and 15 of the 22 in study 2. Its hidden oracle lowercased percent-encoded hex digits in a
   host, which the prompt says stay uppercase; on that point the agents followed the prompt. The
   task's own reference solution lowercased the host like the oracle. Two of the 6 (`haiku-low`)
-  also fail a separate validation test (`//[V1F.a:b]`). Results are reported with and without
+  also fail a separate validation test (`//[V1F.a:b]`, from the check output in the transcript
+  archive). Results are reported with and without
   the task. The check was fixed after both studies (agent-ab `9f31a88`);
   [experiments/setups-rerun.toml](experiments/setups-rerun.toml) reruns study 1's solvable
   tasks with it.
@@ -405,7 +408,8 @@ risk in the other direction (see Limitations).
   transcript shows an agent reading the hidden checks or opening another trial's workspace. Some
   agents searched the disk: on the impossible `procure-2019-prices` task (`find /`, `find ~`),
   and once on `feature-uri-resolve` for a reference `urikit/normalize.py` (stopped before it
-  returned anything). In study 2, tool outputs in 10 trials showed other trials' workspace paths
+  returned anything). In study 2 (counts from the transcript archive), tool outputs in 10
+  trials showed other trials' workspace paths
   (temp-directory listings and file searches); one agent ran a recursive content search (`Grep
   "def _scan"`) over the whole temp directory, which matched another trial's file. No tool call
   opened another trial's workspace. In 6 trials, `Write` calls to `/tmp/...` paths created
