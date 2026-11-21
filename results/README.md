@@ -30,18 +30,22 @@ directly as `overclaim scan --labels`. Field lists: [docs/cli.md](../docs/cli.md
 
 `transcripts.tar.gz` is too large for git (about 12 MB for study 1, 31 MB for study 2). Each
 study's archive is published as an asset on the GitHub release tagged `results-data`:
-`setups-transcripts.tar.gz` and `interventions-transcripts.tar.gz`. The rerun's archive,
-`setups-rerun-transcripts.tar.gz` (about 13 MB), is in the `results-data` release.
+`setups-transcripts.tar.gz`, `interventions-transcripts.tar.gz` and
+`setups-rerun-transcripts.tar.gz` (about 13 MB). [`SHA256SUMS`](SHA256SUMS) holds their
+checksums; it is a copy of the release's `SHA256SUMS` asset, kept in git so the downloads are
+checked against hashes from the repository. From the repository root:
 
 ```sh
 gh release download results-data --repo h-a-forster/overclaim --pattern "*-transcripts.tar.gz"
+sha256sum -c results/SHA256SUMS
 tar -xzf setups-transcripts.tar.gz -C results/setups
 tar -xzf interventions-transcripts.tar.gz -C results/interventions
 tar -xzf setups-rerun-transcripts.tar.gz -C results/setups-rerun
 ```
 
-Without `gh`, download the file from the release page in a browser. The archive holds, per
-trial, `trials/<id>/attempt-<n>/`:
+Without `gh`, download the files from the release page in a browser. On macOS, check them
+with `shasum -a 256 -c results/SHA256SUMS`. Each archive holds, per trial,
+`trials/<id>/attempt-<n>/`:
 
 - `prompt.md`: the task prompt the agent got;
 - `agent.stdout`: the Claude Code `stream-json` transcript;

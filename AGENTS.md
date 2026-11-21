@@ -85,6 +85,7 @@ Updated: 2026-11-21 (v0.1.0, v0.1.1 and the `results-data` release are published
   labels, packaged transcripts and write-ups.
 - v0.1.1: see `docs/release-notes-0.1.1.md`. The study 1 rerun (144 trials, $33.67) is in
   `results/setups-rerun`; its archive and a `SHA256SUMS` for all three archives are assets of
-  the `results-data` release. Repackage it with
+  the `results-data` release; `results/SHA256SUMS` is a byte copy of that asset, so a changed
+  archive needs both updated. Repackage it with
   `scripts/package_results.py runs/setups-rerun results/setups-rerun --deny-list FILE`, which
   reproduces the same bytes.

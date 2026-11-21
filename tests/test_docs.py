@@ -661,15 +661,21 @@ def test_only_text_marked_archive_only_may_hold_other_numbers():
     assert len(check(text, ["FCR {a}%"], [], values).unchecked) == 6
 
 
-def test_every_transcript_archive_has_an_extract_command():
+def test_every_transcript_archive_is_verified_and_extracted():
     readme = ROOT / "results" / "README.md"
     if not readme.exists():
         pytest.skip("results/ is not part of the sdist")
     text = readme.read_text(encoding="utf-8")
+    studies = {p.parent.name for p in (ROOT / "results").glob("*/trials.jsonl")}
     archives = set(re.findall(r"`([a-z-]+)-transcripts\.tar\.gz`", text))
-    assert archives == {p.parent.name for p in (ROOT / "results").glob("*/trials.jsonl")}
-    for study in archives:
-        assert f"tar -xzf {study}-transcripts.tar.gz -C results/{study}\n" in text
+    assert archives == studies
+    sums = (ROOT / "results" / "SHA256SUMS").read_text(encoding="utf-8").splitlines()
+    summed = [re.fullmatch(r"[0-9a-f]{64} [ *]([a-z-]+)-transcripts\.tar\.gz", s) for s in sums]
+    assert all(summed), sums
+    assert sorted(m.group(1) for m in summed) == sorted(studies)
+    verify = text.index("\nsha256sum -c results/SHA256SUMS\n")
+    for study in studies:
+        assert text.index(f"\ntar -xzf {study}-transcripts.tar.gz -C results/{study}\n") > verify
 
 
 def test_citation_release_date_is_the_tag_date():
