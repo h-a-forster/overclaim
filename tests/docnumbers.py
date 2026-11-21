@@ -20,13 +20,38 @@ TOKEN = re.compile(r"[^\s()\[\]{};:/|*`\"'<>=]+")
 NUMBER = re.compile(r"\d+(?:,\d{3})*(?:\.\d+)?")
 UNIT = re.compile(r"[$~+\-]?\d[\d,.]*(?:-\d[\d,.]*)*(?:%|pp|k|x)?[.,]?")
 SKIP = re.compile(r"\d{4}-\d{2}-\d{2}[.,]?|v?\d+\.\d+\.\d+[.,]?|#\d+[.,]?")
+ROW = re.compile(r"\s*\|")
+ITEM = re.compile(r"\s*(?:[-*+]|\d+\.)\s")
+
+
+def blocks(text: str) -> list[tuple[str, bool]]:
+    """Paragraphs, list items and table rows as (text, is a table row).
+
+    Fenced code and link targets are dropped and whitespace is collapsed.
+    """
+    out: list[tuple[str, bool]] = []
+    lines: list[str] = []
+
+    def flush(row: bool = False) -> None:
+        words = " ".join(lines).split()
+        if words:
+            out.append((" ".join(words), row))
+        lines.clear()
+
+    for line in LINK_TARGET.sub("]", FENCE.sub("\n\n", text)).splitlines():
+        row = bool(ROW.match(line))
+        if row or ITEM.match(line) or not line.strip():
+            flush()
+        lines.append(line)
+        if row:
+            flush(row=True)
+    flush()
+    return out
 
 
 def normalise(text: str) -> str:
     """Drop fenced code and link targets, and collapse whitespace."""
-    text = FENCE.sub(" ", text)
-    text = LINK_TARGET.sub("]", text)
-    return " ".join(text.split())
+    return " ".join(block for block, _ in blocks(text))
 
 
 def render(template: str, values: dict[str, str]) -> tuple[str, list[tuple[int, int]]]:
@@ -70,14 +95,35 @@ class Result:
     unchecked: list[str] = field(default_factory=list)
 
 
-def check(text: str, claims: list[str], fixed: list[str], values: dict[str, str]) -> Result:
-    """Every claim and fixed literal must appear, and every number must be covered by one."""
-    body = normalise(text)
+def check(
+    text: str,
+    claims: list[str],
+    fixed: list[str],
+    values: dict[str, str],
+    exempt: str | None = None,
+) -> Result:
+    """Every claim and fixed literal must appear, and every number must be covered by one.
+
+    With `exempt`, a paragraph, list item or table row that contains that marker text may hold
+    other numbers, and so may the table that a marked paragraph ending in a colon introduces.
+    Claims are still checked there.
+    """
+    parts = blocks(text)
+    body = " ".join(block for block, _ in parts)
     covered = bytearray(len(body))
     result = Result()
 
     def mark(start: int, end: int) -> None:
         covered[start:end] = b"\x01" * (end - start)
+
+    start, introduced = 0, False
+    for block, row in parts:
+        introduced = introduced and row
+        marked = exempt is not None and exempt in block
+        if marked or introduced:
+            mark(start, start + len(block))
+        introduced = introduced or (marked and block.endswith(":"))
+        start += len(block) + 1
 
     for claim in claims:
         rendered, spans = render(claim, values)

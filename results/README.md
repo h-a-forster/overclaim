@@ -37,6 +37,7 @@ study's archive is published as an asset on the GitHub release tagged `results-d
 gh release download results-data --repo h-a-forster/overclaim --pattern "*-transcripts.tar.gz"
 tar -xzf setups-transcripts.tar.gz -C results/setups
 tar -xzf interventions-transcripts.tar.gz -C results/interventions
+tar -xzf setups-rerun-transcripts.tar.gz -C results/setups-rerun
 ```
 
 Without `gh`, download the file from the release page in a browser. The archive holds, per

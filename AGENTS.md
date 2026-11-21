@@ -25,9 +25,10 @@ task suites, two published studies and a rerun of study 1 (`results/`, written u
 - Every number in `README.md` and `docs/results.md` must trace to `results/<study>/` files or a
   scan command in `docs/results.md#reproducing-the-tables`. Change the numbers only with the
   data. `scripts/summarize_results.py` rebuilds `results/summary.json` from the committed files
-  (CI diffs it), and `tests/test_docs.py` checks every README and CITATION number against it;
-  a new number needs a key there and a claim, or a fixed entry whose source the README states
-  (counts read only from the transcript archive). `docs/results.md` is not checked yet.
+  (CI diffs it), and `tests/test_docs.py` checks every README, CITATION and `docs/results.md`
+  number against it; a new number needs a key there and a claim, or a fixed entry whose source
+  the document states. In `docs/results.md`, counts read only from the transcript archive sit in
+  a paragraph, list item or table row saying "transcript archive, not from files in git" instead.
 - Published data goes through `scripts/package_results.py` (redaction, home-path and user-name
   scrubbing, `--deny-list`). Transcript archives are release assets, not git files.
 - Studies call models and run agents unsandboxed with full permissions: use a container or a
@@ -39,9 +40,14 @@ task suites, two published studies and a rerun of study 1 (`results/`, written u
   local user paths or machine details in committed files, commit messages or logs. No
   attribution trailers on commits or pull requests.
 - Do not hand-edit `CHANGELOG.md`; change notes go in `docs/release-notes-<version>.md`.
-- Open work lives in `backlog.md`, one outcome per line; delete finished items.
 - Published `trials-derived.jsonl` files must stay byte-identical to `overclaim export . --labels
-  gold.jsonl` run inside `results/<study>/` on the extracted archive.
+  gold.jsonl` run inside `results/<study>/` on the extracted archive. One known exception: the
+  `setups` archive was packaged before the 0.1.1 parser fix and its redaction removed the test
+  output of `feature-toml-config__haiku-high__r1`, so the export reads that trial's
+  `verification` as `unknown`, not `passed` (`docs/results.md`, study 1 detectors). Repackaging
+  study 1 from the raw run directory is expected to remove it; not yet done.
+- The number check reads digits only: number words in prose ("two", "all", "none") are not
+  checked, and passages marked as transcript-archive-only are not checked in CI.
 
 ## Layout
 
@@ -73,12 +79,12 @@ the tests from the sdist. Solvable tasks are validated with `agent-ab validate <
 
 ## Status
 
-Updated: 2026-11-06 (v0.1.1 prepared on `polish-2026-10-30`, untagged; v0.1.0 and the
-`results-data` release are published). Open work is in `backlog.md`.
+Updated: 2026-11-21 (v0.1.0, v0.1.1 and the `results-data` release are published).
 
 - v0.1.0: package, hook, task suites, study 1 (184 trials) and study 2 (288 trials) with gold
   labels, packaged transcripts and write-ups.
 - v0.1.1: see `docs/release-notes-0.1.1.md`. The study 1 rerun (144 trials, $33.67) is in
-  `results/setups-rerun`; its archive is local until it is uploaded. Repackage it with
+  `results/setups-rerun`; its archive and a `SHA256SUMS` for all three archives are assets of
+  the `results-data` release. Repackage it with
   `scripts/package_results.py runs/setups-rerun results/setups-rerun --deny-list FILE`, which
   reproduces the same bytes.

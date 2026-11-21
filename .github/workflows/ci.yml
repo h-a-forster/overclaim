@@ -37,11 +37,16 @@ jobs:
           uv run ruff check .
           uv run ruff format --check src tests scripts
 
+      - name: Fetch tags
+        # tests/test_docs.py compares CITATION.cff's date-released with its version's tag date;
+        # the checkout above fetches no tags, so that test would skip.
+        run: git fetch --no-tags --depth=1 origin "+refs/tags/*:refs/tags/*"
+
       - name: Test
         run: uv run pytest
 
       - name: Result summary rebuilds from the committed files
-        # tests/test_docs.py checks every README number against results/summary.json.
+        # tests/test_docs.py checks README.md and docs/results.md against results/summary.json.
         shell: bash
         run: |
           uv run python scripts/summarize_results.py
